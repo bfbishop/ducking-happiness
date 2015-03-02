@@ -8,7 +8,7 @@
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
 #define YY_FLEX_MINOR_VERSION 5
-#define YY_FLEX_SUBMINOR_VERSION 35
+#define YY_FLEX_SUBMINOR_VERSION 39
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
@@ -161,7 +161,12 @@ typedef unsigned int flex_uint32_t;
 typedef struct yy_buffer_state *YY_BUFFER_STATE;
 #endif
 
-extern int yyleng;
+#ifndef YY_TYPEDEF_YY_SIZE_T
+#define YY_TYPEDEF_YY_SIZE_T
+typedef size_t yy_size_t;
+#endif
+
+extern yy_size_t yyleng;
 
 extern FILE *yyin, *yyout;
 
@@ -183,6 +188,13 @@ extern FILE *yyin, *yyout;
                     if ( yytext[yyl] == '\n' )\
                         --yylineno;\
             }while(0)
+    #define YY_LINENO_REWIND_TO(dst) \
+            do {\
+                const char *p;\
+                for ( p = yy_cp-1; p >= (dst); --p)\
+                    if ( *p == '\n' )\
+                        --yylineno;\
+            }while(0)
     
 /* Return all but the first "n" matched characters back to the input stream. */
 #define yyless(n) \
@@ -199,11 +211,6 @@ extern FILE *yyin, *yyout;
 	while ( 0 )
 
 #define unput(c) yyunput( c, (yytext_ptr)  )
-
-#ifndef YY_TYPEDEF_YY_SIZE_T
-#define YY_TYPEDEF_YY_SIZE_T
-typedef size_t yy_size_t;
-#endif
 
 #ifndef YY_STRUCT_YY_BUFFER_STATE
 #define YY_STRUCT_YY_BUFFER_STATE
@@ -222,7 +229,7 @@ struct yy_buffer_state
 	/* Number of characters read into yy_ch_buf, not including EOB
 	 * characters.
 	 */
-	int yy_n_chars;
+	yy_size_t yy_n_chars;
 
 	/* Whether we "own" the buffer - i.e., we know we created it,
 	 * and can realloc() it to grow it, and should free() it to
@@ -292,8 +299,8 @@ static YY_BUFFER_STATE * yy_buffer_stack = 0; /**< Stack as an array. */
 
 /* yy_hold_char holds the character lost when yytext is formed. */
 static char yy_hold_char;
-static int yy_n_chars;		/* number of characters read into yy_ch_buf */
-int yyleng;
+static yy_size_t yy_n_chars;		/* number of characters read into yy_ch_buf */
+yy_size_t yyleng;
 
 /* Points to current character in buffer. */
 static char *yy_c_buf_p = (char *) 0;
@@ -321,7 +328,7 @@ static void yy_init_buffer (YY_BUFFER_STATE b,FILE *file  );
 
 YY_BUFFER_STATE yy_scan_buffer (char *base,yy_size_t size  );
 YY_BUFFER_STATE yy_scan_string (yyconst char *yy_str  );
-YY_BUFFER_STATE yy_scan_bytes (yyconst char *bytes,int len  );
+YY_BUFFER_STATE yy_scan_bytes (yyconst char *bytes,yy_size_t len  );
 
 void *yyalloc (yy_size_t  );
 void *yyrealloc (void *,yy_size_t  );
@@ -593,8 +600,8 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "lexer-standalone.lex"
-#line 5 "lexer-standalone.lex"
+#line 1 "blexer.lex"
+#line 5 "blexer.lex"
 /*
     This file contains the input to lex. 
 */
@@ -632,7 +639,7 @@ http://flex.sourceforge.net/manual/How-can-I-match-C_002dstyle-comments_003f.htm
 #define YY_NO_INPUT 1
 /* regular definitions */
 /*have to handle the case of multiple 0 in a row. Need error since we don't have octal here*/
-#line 636 "lex.yy.c"
+#line 643 "lex.yy.c"
 
 #define INITIAL 0
 #define IN_COMMENT 1
@@ -674,7 +681,7 @@ FILE *yyget_out (void );
 
 void yyset_out  (FILE * out_str  );
 
-int yyget_leng (void );
+yy_size_t yyget_leng (void );
 
 char *yyget_text (void );
 
@@ -820,11 +827,6 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 63 "lexer-standalone.lex"
-
-
-#line 827 "lex.yy.c"
-
 	if ( !(yy_init) )
 		{
 		(yy_init) = 1;
@@ -851,6 +853,12 @@ YY_DECL
 		yy_load_buffer_state( );
 		}
 
+	{
+#line 63 "blexer.lex"
+
+
+#line 861 "lex.yy.c"
+
 	while ( 1 )		/* loops until end-of-file is reached */
 		{
 		yy_cp = (yy_c_buf_p);
@@ -867,7 +875,7 @@ YY_DECL
 yy_match:
 		do
 			{
-			register YY_CHAR yy_c = yy_ec[YY_SC_TO_UI(*yy_cp)];
+			register YY_CHAR yy_c = yy_ec[YY_SC_TO_UI(*yy_cp)] ;
 			if ( yy_accept[yy_current_state] )
 				{
 				(yy_last_accepting_state) = yy_current_state;
@@ -897,7 +905,7 @@ yy_find_action:
 
 		if ( yy_act != YY_END_OF_BUFFER && yy_rule_can_match_eol[yy_act] )
 			{
-			int yyl;
+			yy_size_t yyl;
 			for ( yyl = 0; yyl < yyleng; ++yyl )
 				if ( yytext[yyl] == '\n' )
 					   
@@ -918,39 +926,39 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 65 "lexer-standalone.lex"
+#line 65 "blexer.lex"
 { fprintf(stderr,"Line %d: no integer suffixes or digit-leading identifiers allowed (%s)\n", yylineno, yytext);}
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 66 "lexer-standalone.lex"
+#line 66 "blexer.lex"
 {/* no action and no return */}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 68 "lexer-standalone.lex"
+#line 68 "blexer.lex"
 BEGIN(IN_COMMENT);
 	YY_BREAK
 
 case 4:
 YY_RULE_SETUP
-#line 70 "lexer-standalone.lex"
+#line 70 "blexer.lex"
 BEGIN(INITIAL);
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 71 "lexer-standalone.lex"
+#line 71 "blexer.lex"
 /* eat comment in chunks*/
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 72 "lexer-standalone.lex"
+#line 72 "blexer.lex"
 /* eat the lone star*/
 	YY_BREAK
 case YY_STATE_EOF(IN_COMMENT):
-#line 73 "lexer-standalone.lex"
+#line 73 "blexer.lex"
 { BEGIN(INITIAL) ; 
         /*yylineno exceeds length of file when using EOF*/
         fprintf(stderr,"Line %d: unterminated comment (/*)\n",yylineno-1); }
@@ -958,102 +966,102 @@ case YY_STATE_EOF(IN_COMMENT):
 
 case 7:
 YY_RULE_SETUP
-#line 77 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RW_BREAK;}
+#line 77 "blexer.lex"
+{return RW_BREAK;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 78 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RW_CHAR;}
+#line 78 "blexer.lex"
+{return RW_CHAR;}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 79 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RW_CONTINUE;}
+#line 79 "blexer.lex"
+{return RW_CONTINUE;}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 80 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RW_DO;}
+#line 80 "blexer.lex"
+{return RW_DO;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 81 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RW_ELSE;}
+#line 81 "blexer.lex"
+{return RW_ELSE;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 82 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RW_FOR;}
+#line 82 "blexer.lex"
+{return RW_FOR;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 83 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RW_GOTO;}
+#line 83 "blexer.lex"
+{return RW_GOTO;}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 84 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RW_IF;}
+#line 84 "blexer.lex"
+{return RW_IF;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 85 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RW_INT;}
+#line 85 "blexer.lex"
+{return RW_INT;}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 86 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RW_LONG;}
+#line 86 "blexer.lex"
+{return RW_LONG;}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 87 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RW_RETURN;}
+#line 87 "blexer.lex"
+{return RW_RETURN;}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 88 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RW_SHORT;}
+#line 88 "blexer.lex"
+{return RW_SHORT;}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 89 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RW_SIGNED;}
+#line 89 "blexer.lex"
+{return RW_SIGNED;}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 90 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RW_UNSIGNED;}
+#line 90 "blexer.lex"
+{return RW_UNSIGNED;}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 91 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RW_VOID;}
+#line 91 "blexer.lex"
+{return RW_VOID;}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 92 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RW_WHILE;}
+#line 92 "blexer.lex"
+{return RW_WHILE;}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 93 "lexer-standalone.lex"
-{yylval = node_identifier(yytext); printf("%s\n",yytext); return ID;}
+#line 93 "blexer.lex"
+{yylval = node_identifier(yytext); return ID;}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 94 "lexer-standalone.lex"
+#line 94 "blexer.lex"
 {yylval = node_number(0, INT); return INT;}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 95 "lexer-standalone.lex"
+#line 95 "blexer.lex"
 {fprintf(stderr,"Line %d: octal numbers not allowed (%s)\n",yylineno, yytext);};
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 96 "lexer-standalone.lex"
+#line 96 "blexer.lex"
 {int numberType = eval_num_type();
           if (!myerrno) { 
               yylval = node_number(eval_num(), numberType);  
@@ -1064,7 +1072,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 103 "lexer-standalone.lex"
+#line 103 "blexer.lex"
 { tmpstr = (char *)malloc_string_no_content() ; 
           if (tmpstr != NULL) {
             BEGIN(IN_STRING);
@@ -1075,7 +1083,7 @@ YY_RULE_SETUP
 
 case 28:
 YY_RULE_SETUP
-#line 110 "lexer-standalone.lex"
+#line 110 "blexer.lex"
 { /*This code builds up strings from their constituent pieces of escaped and non-escaped characters
           Case 3 is escaped characters, case 2 is escaped octal-digit characters, and case 1 is everything else.
           */
@@ -1092,7 +1100,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 123 "lexer-standalone.lex"
+#line 123 "blexer.lex"
 { char eval_char = (char)eval_char_case_3();
                   char tmp[2];
                   tmp[0] = eval_char;
@@ -1103,7 +1111,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 130 "lexer-standalone.lex"
+#line 130 "blexer.lex"
 { char eval_char = (char)eval_char_case_2();
                   char tmp[2];
                   tmp[0] = eval_char;
@@ -1114,7 +1122,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 137 "lexer-standalone.lex"
+#line 137 "blexer.lex"
 {
                     fprintf(stderr,"Line %d: bad escape sequence inside string (%s)\n", yylineno, yytext);
                     myerrno = 1;
@@ -1122,7 +1130,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 141 "lexer-standalone.lex"
+#line 141 "blexer.lex"
 { tmpstr = mystrcat(tmpstr, (char *)malloc_string(), tmpstrlen,strlen(yytext));
                   tmpstrlen += strlen(yytext);
                 }
@@ -1130,7 +1138,7 @@ YY_RULE_SETUP
 case 33:
 /* rule 33 can match eol */
 YY_RULE_SETUP
-#line 144 "lexer-standalone.lex"
+#line 144 "blexer.lex"
 { myerrno = 1;
                   /*yylineno exceeds length of file when using EOF*/
                   fprintf(stderr,"Line %d: not allowed to have multi-line strings\n", yylineno-1);
@@ -1140,274 +1148,274 @@ YY_RULE_SETUP
 
 case 34:
 YY_RULE_SETUP
-#line 150 "lexer-standalone.lex"
+#line 150 "blexer.lex"
 { fprintf(stderr,"Line %d: empty character not allowed (%s)\n", yylineno, yytext); } 
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 151 "lexer-standalone.lex"
+#line 151 "blexer.lex"
 { BEGIN(IN_CHAR); myerrno = 0;}
 	YY_BREAK
 
 case 36:
 YY_RULE_SETUP
-#line 153 "lexer-standalone.lex"
+#line 153 "blexer.lex"
 { BEGIN(INITIAL); }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 154 "lexer-standalone.lex"
+#line 154 "blexer.lex"
 {yylval = node_number(eval_char_case_1(), CHAR) ; if (!myerrno) { return CHAR; }}
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 155 "lexer-standalone.lex"
+#line 155 "blexer.lex"
 {yylval = node_number(eval_char_case_2(), CHAR) ; if (!myerrno) { return CHAR; }}
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 156 "lexer-standalone.lex"
+#line 156 "blexer.lex"
 {yylval = node_number(eval_char_case_3(), CHAR) ; if (!myerrno) { return CHAR; }}
 	YY_BREAK
 case 40:
 /* rule 40 can match eol */
 YY_RULE_SETUP
-#line 157 "lexer-standalone.lex"
+#line 157 "blexer.lex"
 {fprintf(stderr,"Line %d: Bad sequence inside character (%s)\n",yylineno,yytext);}
 	YY_BREAK
 
 case 41:
 YY_RULE_SETUP
-#line 159 "lexer-standalone.lex"
-{printf("%s\n",yytext); return PARENLEFT;}
+#line 159 "blexer.lex"
+{return PARENLEFT;}
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 160 "lexer-standalone.lex"
-{printf("%s\n",yytext); return PARENRIGHT;}
+#line 160 "blexer.lex"
+{return PARENRIGHT;}
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 161 "lexer-standalone.lex"
-{printf("%s\n",yytext); return BRACKETLEFT;}
+#line 161 "blexer.lex"
+{return BRACKETLEFT;}
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 162 "lexer-standalone.lex"
-{printf("%s\n",yytext); return BRACKETRIGHT;}
+#line 162 "blexer.lex"
+{return BRACKETRIGHT;}
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 163 "lexer-standalone.lex"
-{printf("%s\n",yytext); return BRACELEFT;}
+#line 163 "blexer.lex"
+{return BRACELEFT;}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 164 "lexer-standalone.lex"
-{printf("%s\n",yytext); return BRACERIGHT;}
+#line 164 "blexer.lex"
+{return BRACERIGHT;}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 165 "lexer-standalone.lex"
-{printf("%s\n",yytext); return SEPSEMICOLON;}
+#line 165 "blexer.lex"
+{return SEPSEMICOLON;}
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 166 "lexer-standalone.lex"
-{printf("%s\n",yytext); return INCDECINCREMENT;}
+#line 166 "blexer.lex"
+{return INCDECINCREMENT;}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 167 "lexer-standalone.lex"
-{printf("%s\n",yytext); return INCDECDECREMENT;}
+#line 167 "blexer.lex"
+{return INCDECDECREMENT;}
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 168 "lexer-standalone.lex"
-{printf("%s\n",yytext); return LOGNEG;}
+#line 168 "blexer.lex"
+{return LOGNEG;}
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 169 "lexer-standalone.lex"
-{printf("%s\n",yytext); return BITWISENEG;}
+#line 169 "blexer.lex"
+{return BITWISENEG;}
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 170 "lexer-standalone.lex"
-{printf("%s\n",yytext); return MULTIPLY;}
+#line 170 "blexer.lex"
+{return MULTIPLY;}
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 171 "lexer-standalone.lex"
-{printf("%s\n",yytext); return DIVIDE;}
+#line 171 "blexer.lex"
+{return DIVIDE;}
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 172 "lexer-standalone.lex"
-{printf("%s\n",yytext); return REMAINDER;}
+#line 172 "blexer.lex"
+{return REMAINDER;}
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 173 "lexer-standalone.lex"
-{printf("%s\n",yytext); return ADDITION;}
+#line 173 "blexer.lex"
+{return ADDITION;}
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 174 "lexer-standalone.lex"
-{printf("%s\n",yytext); return SUBTRACTION;}
+#line 174 "blexer.lex"
+{return SUBTRACTION;}
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 175 "lexer-standalone.lex"
-{printf("%s\n",yytext); return LEFT;}
+#line 175 "blexer.lex"
+{return LEFT;}
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 176 "lexer-standalone.lex"
-{printf("%s\n",yytext); return RIGHT;}
+#line 176 "blexer.lex"
+{return RIGHT;}
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 177 "lexer-standalone.lex"
-{printf("%s\n",yytext); return LT;}
+#line 177 "blexer.lex"
+{return LT;}
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 178 "lexer-standalone.lex"
-{printf("%s\n",yytext); return LE;}
+#line 178 "blexer.lex"
+{return LE;}
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 179 "lexer-standalone.lex"
-{printf("%s\n",yytext); return GT;}
+#line 179 "blexer.lex"
+{return GT;}
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 180 "lexer-standalone.lex"
-{printf("%s\n",yytext); return GE;}
+#line 180 "blexer.lex"
+{return GE;}
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 181 "lexer-standalone.lex"
-{printf("%s\n",yytext); return EQ;}
+#line 181 "blexer.lex"
+{return EQ;}
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 182 "lexer-standalone.lex"
-{printf("%s\n",yytext); return NE;}
+#line 182 "blexer.lex"
+{return NE;}
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 183 "lexer-standalone.lex"
-{printf("%s\n",yytext); return BITOR;}
+#line 183 "blexer.lex"
+{return BITOR;}
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 184 "lexer-standalone.lex"
-{printf("%s\n",yytext); return BITXOR;}
+#line 184 "blexer.lex"
+{return BITXOR;}
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 185 "lexer-standalone.lex"
-{printf("%s\n",yytext); return BITAND;}
+#line 185 "blexer.lex"
+{return BITAND;}
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 186 "lexer-standalone.lex"
-{printf("%s\n",yytext); return LOGICALOR;}
+#line 186 "blexer.lex"
+{return LOGICALOR;}
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 187 "lexer-standalone.lex"
-{printf("%s\n",yytext); return LOGICALAND;}
+#line 187 "blexer.lex"
+{return LOGICALAND;}
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 188 "lexer-standalone.lex"
-{printf("%s\n",yytext); return CONDQUEST;}
+#line 188 "blexer.lex"
+{return CONDQUEST;}
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 189 "lexer-standalone.lex"
-{printf("%s\n",yytext); return CONDCOLON;}
+#line 189 "blexer.lex"
+{return CONDCOLON;}
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 190 "lexer-standalone.lex"
-{printf("%s\n",yytext); return ASSIGNMENTSIMPLE;}
+#line 190 "blexer.lex"
+{return ASSIGNMENTSIMPLE;}
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 191 "lexer-standalone.lex"
-{printf("%s\n",yytext); return ASSIGNMENTADDITION;}
+#line 191 "blexer.lex"
+{return ASSIGNMENTADDITION;}
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 192 "lexer-standalone.lex"
-{printf("%s\n",yytext); return ASSIGNMENTSUBTRACTION;}
+#line 192 "blexer.lex"
+{return ASSIGNMENTSUBTRACTION;}
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 193 "lexer-standalone.lex"
-{printf("%s\n",yytext); return ASSIGNMENTMULTIPLICATION;}
+#line 193 "blexer.lex"
+{return ASSIGNMENTMULTIPLICATION;}
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 194 "lexer-standalone.lex"
-{printf("%s\n",yytext); return ASSIGNMENTDIVISION;}
+#line 194 "blexer.lex"
+{return ASSIGNMENTDIVISION;}
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 195 "lexer-standalone.lex"
-{printf("%s\n",yytext); return ASSIGNMENTREMAINDER;}
+#line 195 "blexer.lex"
+{return ASSIGNMENTREMAINDER;}
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 196 "lexer-standalone.lex"
-{printf("%s\n",yytext); return ASSIGNMENTLEFTSHIFT;}
+#line 196 "blexer.lex"
+{return ASSIGNMENTLEFTSHIFT;}
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 197 "lexer-standalone.lex"
-{printf("%s\n",yytext); return ASSIGNMENTRIGHTSHIFT;}
+#line 197 "blexer.lex"
+{return ASSIGNMENTRIGHTSHIFT;}
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 198 "lexer-standalone.lex"
-{printf("%s\n",yytext); return ASSIGNMENTBITWISEAND;}
+#line 198 "blexer.lex"
+{return ASSIGNMENTBITWISEAND;}
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 199 "lexer-standalone.lex"
-{printf("%s\n",yytext); return ASSIGNMENTBITWISEXOR;}
+#line 199 "blexer.lex"
+{return ASSIGNMENTBITWISEXOR;}
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 200 "lexer-standalone.lex"
-{printf("%s\n",yytext); return ASSIGNMENTBITWISEOR;}
+#line 200 "blexer.lex"
+{return ASSIGNMENTBITWISEOR;}
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 201 "lexer-standalone.lex"
+#line 201 "blexer.lex"
 {return SEQUENTIALCOMMA;}
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 203 "lexer-standalone.lex"
+#line 203 "blexer.lex"
 { fprintf(stderr,"Line %d: malformed comment (%s)\n", yylineno, yytext); }
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 204 "lexer-standalone.lex"
+#line 204 "blexer.lex"
 {fprintf(stderr,"Line %d: unrecognized character (%s)\n", yylineno, yytext)
 ;}
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 207 "lexer-standalone.lex"
+#line 207 "blexer.lex"
 ECHO;
 	YY_BREAK
-#line 1411 "lex.yy.c"
+#line 1419 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(IN_STRING):
 case YY_STATE_EOF(IN_CHAR):
@@ -1540,6 +1548,7 @@ case YY_STATE_EOF(IN_CHAR):
 			"fatal flex scanner internal error--no action found" );
 	} /* end of action switch */
 		} /* end of scanning one token */
+	} /* end of user's declarations */
 } /* end of yylex */
 
 /* yy_get_next_buffer - try to read in a new buffer
@@ -1595,21 +1604,21 @@ static int yy_get_next_buffer (void)
 
 	else
 		{
-			int num_to_read =
+			yy_size_t num_to_read =
 			YY_CURRENT_BUFFER_LVALUE->yy_buf_size - number_to_move - 1;
 
 		while ( num_to_read <= 0 )
 			{ /* Not enough room in the buffer - grow it. */
 
 			/* just a shorter name for the current buffer */
-			YY_BUFFER_STATE b = YY_CURRENT_BUFFER;
+			YY_BUFFER_STATE b = YY_CURRENT_BUFFER_LVALUE;
 
 			int yy_c_buf_p_offset =
 				(int) ((yy_c_buf_p) - b->yy_ch_buf);
 
 			if ( b->yy_is_our_buffer )
 				{
-				int new_size = b->yy_buf_size * 2;
+				yy_size_t new_size = b->yy_buf_size * 2;
 
 				if ( new_size <= 0 )
 					b->yy_buf_size += b->yy_buf_size / 8;
@@ -1640,7 +1649,7 @@ static int yy_get_next_buffer (void)
 
 		/* Read in more data. */
 		YY_INPUT( (&YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[number_to_move]),
-			(yy_n_chars), (size_t) num_to_read );
+			(yy_n_chars), num_to_read );
 
 		YY_CURRENT_BUFFER_LVALUE->yy_n_chars = (yy_n_chars);
 		}
@@ -1735,7 +1744,7 @@ static int yy_get_next_buffer (void)
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
 	yy_is_jam = (yy_current_state == 164);
 
-	return yy_is_jam ? 0 : yy_current_state;
+		return yy_is_jam ? 0 : yy_current_state;
 }
 
 #ifndef YY_NO_INPUT
@@ -1762,7 +1771,7 @@ static int yy_get_next_buffer (void)
 
 		else
 			{ /* need more input */
-			int offset = (yy_c_buf_p) - (yytext_ptr);
+			yy_size_t offset = (yy_c_buf_p) - (yytext_ptr);
 			++(yy_c_buf_p);
 
 			switch ( yy_get_next_buffer(  ) )
@@ -1927,10 +1936,6 @@ static void yy_load_buffer_state  (void)
 	yyfree((void *) b  );
 }
 
-#ifndef __cplusplus
-extern int isatty (int );
-#endif /* __cplusplus */
-    
 /* Initializes or reinitializes a buffer.
  * This function is sometimes called more than once on the same buffer,
  * such as during a yyrestart() or at EOF.
@@ -2043,7 +2048,7 @@ void yypop_buffer_state (void)
  */
 static void yyensure_buffer_stack (void)
 {
-	int num_to_alloc;
+	yy_size_t num_to_alloc;
     
 	if (!(yy_buffer_stack)) {
 
@@ -2140,12 +2145,12 @@ YY_BUFFER_STATE yy_scan_string (yyconst char * yystr )
  * 
  * @return the newly allocated buffer state object.
  */
-YY_BUFFER_STATE yy_scan_bytes  (yyconst char * yybytes, int  _yybytes_len )
+YY_BUFFER_STATE yy_scan_bytes  (yyconst char * yybytes, yy_size_t  _yybytes_len )
 {
 	YY_BUFFER_STATE b;
 	char *buf;
 	yy_size_t n;
-	int i;
+	yy_size_t i;
     
 	/* Get memory for full buffer, including space for trailing EOB's. */
 	n = _yybytes_len + 2;
@@ -2227,7 +2232,7 @@ FILE *yyget_out  (void)
 /** Get the length of the current token.
  * 
  */
-int yyget_leng  (void)
+yy_size_t yyget_leng  (void)
 {
         return yyleng;
 }
@@ -2378,7 +2383,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 207 "lexer-standalone.lex"
+#line 206 "blexer.lex"
 
 
 

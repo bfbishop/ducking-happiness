@@ -15,6 +15,7 @@ enum node_kinds {
         NODE_IDENTIFIER,
         NODE_BINARY_OPERATION,
         NODE_EXPRESSION_STATEMENT,
+        NODE_EXPR_LIST,
         NODE_STATEMENT_LIST,
         NODE_UNARY_OPERATION,
         NODE_TERNARY_OPERATION,
@@ -46,7 +47,8 @@ enum node_kinds {
         NODE_EXPR_STATEMENT,
         NODE_NULL_STATEMENT,
         NODE_TYPE_NAME,
-        NODE_ABS_DECL
+        NODE_ABS_DECL,
+        NODE_TRANSLATION_UNIT
     };
 
 enum while_kinds {
@@ -108,6 +110,10 @@ struct node {
       struct node *right_operand;
       long int result;
     } unary_operation;
+    struct {
+      struct node *init;
+      struct node *expr;
+    } expr_list;
     struct {
       struct node *init;
       struct node *statement;
@@ -209,6 +215,10 @@ struct node {
       int pointer_depth;
       struct node *dir_abs_decl;
     } abs_decl;
+    struct {
+      struct node *init;
+      struct node *top_level_decl;
+    } translation_unit;
   } data;
 };
 
@@ -216,7 +226,8 @@ struct node {
 struct node *node_number(long int value, int subkind);
 struct node *node_identifier(char *text);
 struct node *node_string(char *text, int length);
-struct node *node_statement_list(struct node *list, struct node *item);
+struct node *node_expr_list(struct node *init, struct node *expr);
+struct node *node_statement_list(struct node *init, struct node *statement);
 struct node *node_ternary_operation(int operation1, int operation2, struct node *left_operand, struct node *middle_operand, struct node *right_operand);
 struct node *node_binary_operation(int operation, struct node *left_operand,
                                    struct node *right_operand);
@@ -252,6 +263,7 @@ struct node *node_expr_statement(struct node *expr);
 struct node *node_null_statement();
 struct node *node_type_name(struct node * decl_spec, struct node * abs_decl);
 struct node *node_abstract_decl(long int pointer_depth, struct node * dir_abs_decl);
+struct node *node_translation_unit(struct node * init, struct node * top_level_decl);
 
 long int node_get_result(struct node *expression);
 

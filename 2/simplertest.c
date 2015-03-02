@@ -1,8 +1,47 @@
 /*nonsense program to test syntax*/
+
+int b;
+char * c;
+
+char a;
+signed char a;
+unsigned char a;
+short a;
+signed short a;
+unsigned short a;
+short int a;
+signed short int a;
+unsigned short int a;
+int a;
+signed int a;
+unsigned int a;
+signed a;
+unsigned a;
+long a;
+signed long a;
+unsigned long a;
+long int a;
+signed long int a;
+unsigned long int a;
+
+void n(void) {
+    return 0;
+}
+
+void fun(void) {
+    ;
+}
+
+void n(int *, int*[3],int[],int(*)[3]);
+
 int ***main(int argc, char * argv[]) {
-        char *[];
+        char *a[];
+        int a,b,c,d,e,f;
         char * a[];
         char ******* a[9];
+        
+                
+
         a[b] = 9;
         if (a = 0) {
             i = (long int) b;
@@ -14,6 +53,17 @@ int ***main(int argc, char * argv[]) {
             a-=3;
         }
         
+
+        r = i ? a++ : a--;
+        
+        {
+            int i;
+            ;;;;
+        }
+        
+        {}
+
+        this=statement%=is/=crazy^=~++&*a[b^0|3]--/c*d%e<<f>>g?1:0;
 
         if (!a)        
             if (a)
@@ -51,6 +101,11 @@ int ***main(int argc, char * argv[]) {
         while (i = 0)
             a = 9;
      
+        
+
+        if (a=b&&g||r&&&o|t)
+            ;
+
         do
             a++;
         while (a<3); 
@@ -74,3 +129,12 @@ int ***main(int argc, char * argv[]) {
 }
 
 void l (void);
+
+
+void l (void) {
+
+    printf("can't stop\twon't stop");
+    printf("can't stop\vwon't stop");
+    printf("can't stop\0won't stop");
+    f1(f2(f3(4,a),f4(4?3:1)));
+}

@@ -4,26 +4,15 @@
 #define YYERROR_VERBOSE
 #include <stdio.h>
 #include "node.h"
-/*enum node_type {NODE_OPERATOR, NODE_NUMBER};
 
-struct node {
-  enum node_type type;
-  char *operator;
-  struct node *left, *right;
-  int val;
-};
-
-struct node *malloc_op_node(char *operator,
-                struct node *child_left,
-                struct node *child_right);
-void *malloc_number_node(int val);*/
 void print_tree(struct node *node_p);
 int yylex(void);
 int main(void);
 void yyerror(char const *s);
 struct node * root_node;
 
-struct node * btest;
+/*Set to 1 in the event of a recoverable error*/
+int recoverable_error = 0;
 
 %}
 
@@ -123,8 +112,8 @@ add_op :  ADDITION { $$ = (struct node *)ADDITION; }
 ;
 address_expr :  BITAND cast_expr { $$ = node_unary_operation(BITAND, PRE, $2); } 
 ;
-array_declarator :  direct_declarator BRACKETLEFT BRACKETRIGHT { $$ = node_subscript_decl($1, NULL); printf("ARRAY null\n"); }
-    |    direct_declarator BRACKETLEFT constant_expr BRACKETRIGHT  { $$ = node_subscript_decl($1, $3); printf("ARRAY nonull\n"); } 
+array_declarator :  direct_declarator BRACKETLEFT BRACKETRIGHT { $$ = node_subscript_decl($1, NULL); }
+    |    direct_declarator BRACKETLEFT constant_expr BRACKETRIGHT  { $$ = node_subscript_decl($1, $3); } 
 ;
 assignment_expr :  conditional_expr 
 	|	 unary_expr assignment_op assignment_expr { $$ = node_binary_operation((long int)$2, $1, $3); }
@@ -177,7 +166,7 @@ conditional_statement :  if_statement
 constant :  INT 
     |       ULONG
     |       CHAR
-	|  	    STRING
+    |  	    STRING
 ;
 constant_expr :  conditional_expr 
 ;
@@ -197,10 +186,10 @@ declarator :  pointer_declarator
 	|	 direct_declarator 
 ;
 direct_abstract_declarator :  PARENLEFT abstract_declarator PARENRIGHT { $$ = $2; }
-	|	 BRACKETLEFT BRACKETRIGHT { $$ = node_subscript_decl(NULL, NULL); printf("NULLZ\n");}
-	|	 BRACKETLEFT constant_expr BRACKETRIGHT { $$ = node_subscript_decl(NULL, $3); printf("NULL after\n"); }
-	|	 direct_abstract_declarator BRACKETLEFT BRACKETRIGHT { $$ = node_subscript_decl($1, NULL); printf("NULL before\n"); }
-	|	 direct_abstract_declarator BRACKETLEFT constant_expr BRACKETRIGHT { $$ = node_subscript_decl($1, $3); printf("FULLZ\n"); }
+	|	 BRACKETLEFT BRACKETRIGHT { $$ = node_subscript_decl(NULL, NULL); }
+	|	 BRACKETLEFT constant_expr BRACKETRIGHT { $$ = node_subscript_decl(NULL, $3); }
+	|	 direct_abstract_declarator BRACKETLEFT BRACKETRIGHT { $$ = node_subscript_decl($1, NULL); }
+	|	 direct_abstract_declarator BRACKETLEFT constant_expr BRACKETRIGHT { $$ = node_subscript_decl($1, $3); }
 ;
 direct_declarator :  simple_declarator
 	|	 PARENLEFT declarator PARENRIGHT { $$ = $2; }
@@ -218,7 +207,7 @@ equality_op :  EQ { $$ = (struct node *)EQ; }
 expr :  comma_expr 
 ;
 expression_list :  assignment_expr 
-	|	 expression_list SEQUENTIALCOMMA assignment_expr { $$ = node_statement_list($1, $3); }
+	|	 expression_list SEQUENTIALCOMMA assignment_expr { $$ = node_expr_list($1, $3); }
 ;
 expression_statement :  expr SEPSEMICOLON { $$ = node_expr_statement($1); }
 ;
@@ -241,13 +230,14 @@ function_call :  postfix_expr PARENLEFT PARENRIGHT { $$ = node_function_call($1,
 ;
 
 function_declarator :  direct_declarator PARENLEFT parameter_type_list PARENRIGHT { 
-    $$ = node_func_declarator($1, $3); } 
+    $$ = node_func_declarator($1, $3); }
 ;
 
 function_definition :  function_def_specifier compound_statement { $$ = node_function_def($1, $2); }
 ;
-function_def_specifier :  declarator { $$ = node_function_def_spec(NULL, $1); }
-    |   declaration_specifiers declarator { $$ = node_function_def_spec($1, $2); }
+/*Per class site, functions need return types*/
+function_def_specifier :  /*declarator { $$ = node_function_def_spec(NULL, $1); }
+    | */  declaration_specifiers declarator { $$ = node_function_def_spec($1, $2); }
 ;
 
 goto_statement :  RW_GOTO named_label SEPSEMICOLON { $$ = node_goto($2); }
@@ -295,7 +285,7 @@ mult_op :  MULTIPLY { $$ = (struct node *)MULTIPLY; }
 ;
 named_label :  ID 
 ;
-null_statement :  SEPSEMICOLON { $$ = NULL; }
+null_statement :  SEPSEMICOLON { $$ = node_null_statement(); }
 ;
 parameter_decl :  declaration_specifiers declarator { $$ = node_param_decl($1,$2); }
 |	 declaration_specifiers { $$ = node_param_decl($1,NULL); }
@@ -308,6 +298,7 @@ parameter_type_list :  parameter_list
 ;
 parenthesized_expr :  PARENLEFT expr PARENRIGHT { $$ = $2; }
 ;
+/* MULTIPLY == * */
 pointer :  MULTIPLY { $$ = (struct node *)1; }
 |	 MULTIPLY pointer { $$ = (struct node *)((long int) $2+1); }
 ;
@@ -373,8 +364,9 @@ statement :  expression_statement
 	|	 return_statement 
 	|	 goto_statement 
 	|	 null_statement 
+    | error { recoverable_error = 1; yyerrok ; } 
 ;
-/*a[b] == *(a+b) here*/
+/* a[b] == *(a+b) here */
 subscript_expr : postfix_expr BRACKETLEFT expr BRACKETRIGHT 
     { struct node * sum = node_binary_operation(ADDITION, $1, $3); 
       $$ = node_unary_operation(MULTIPLY, PRE, sum); 
@@ -383,8 +375,8 @@ subscript_expr : postfix_expr BRACKETLEFT expr BRACKETRIGHT
 top_level_decl : decl
     |   function_definition 
 ;
-translation_unit :  top_level_decl { $$ = node_decl_list(NULL, $1) ; printf("Here I go!! :)\n"); }
-	|	 translation_unit top_level_decl { $$ = node_decl_list($1, $2); }
+translation_unit :  top_level_decl { $$ = node_translation_unit(NULL, $1) ; }
+	|	 translation_unit top_level_decl { $$ = node_translation_unit($1, $2); }
 ;
 type_name :  declaration_specifiers { $$ = node_type_name($1, NULL);  }
     |   declaration_specifiers abstract_declarator { $$ = node_type_name($1, $2); }
@@ -420,87 +412,16 @@ while_statement :  RW_WHILE PARENLEFT expr PARENRIGHT statement { $$ = node_whil
 ;
 
 
-/*line   : expr STMTSEP_SEMICOLON      { print_tree((struct node *)$1);
-                                       printf("\n"); }
-;
-
-expr   : expr ADDOP_ADDITION term    { $$ = (long)malloc_op_node("+",
-                         (struct node *)$1,
-                         (struct node *)$3); }
-       | term
-       ;
-
-term   : term MULOP_MULTIPLY factor  { $$ = (long)malloc_op_node("*",
-                         (struct node *)$1,
-                         (struct node *)$3); }
-       | factor
-       ;
-
-factor : PAREN_LEFT expr PAREN_RIGHT { $$ = $2; }
-       | NUMBER                      { $$ = (long)malloc_number_node($1); }
-       ;
-*/
 %%
 #include <stdio.h>
 #include <stdlib.h>
 #include "lex.yy.c"
 #include "node.h"
 
-/*struct node *malloc_op_node(char *operator,
-                struct node *child_left,
-                struct node *child_right) {
-  struct node *node_p;
-
-  node_p = malloc(sizeof(struct node));
-#ifdef DEBUG
-  printf("malloc_op_node: Parser building op_node with operator %s;\n\tat address %p\n",
-     operator, (void *)node_p);
-#endif
-  if(node_p == NULL) {
-    printf("***Out of memory***\n");
-  } else {
-    node_p->type = NODE_OPERATOR;
-    node_p->operator = operator;
-    node_p->left = child_left;
-    node_p->right = child_right;
-  }
-
-  return node_p;
-}
-
-void *malloc_number_node(int val) {
-  struct node *node_p;
-
-  node_p = malloc(sizeof(struct node));
-#ifdef DEBUG
-  printf("malloc_number_node: Parser building number_node with value %d;\n\tat address %p\n",
-     val, (void *)node_p);
-#endif
-  if(node_p == NULL) {
-    printf("***Out of memory***\n");
-  } else {
-    node_p->type = NODE_NUMBER;
-    node_p->val = val;
-  }
-
-  return node_p;
-}*/
-
-void print_tree(struct node *node_p) {
-  /*if(node_p->type == NODE_NUMBER) {
-    printf("%p: Node NUMBER, Value %d\n", (void *)node_p, node_p->val);
-  } else {
-    printf("%p: Node OPERATOR, Operator %s, Left child %p, Right child %p\n",
-       (void *)node_p, node_p->operator, (void *)node_p->left, (void *)node_p->right);
-    print_tree(node_p->left);
-    print_tree(node_p->right);
-  }*/
-}
-
 int main(void) {
   int result;
   result = yyparse();
-  if (!result) {
+  if (!result && !recoverable_error) {
       root_node->print_node(stdout, root_node, 0);
   }
   return result;

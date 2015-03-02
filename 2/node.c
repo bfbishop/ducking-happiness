@@ -147,8 +147,9 @@ void print_string(FILE * output, struct node * n, int depth) {
 **/
 struct node *node_string(char *text, int length) {
     struct node * nd = node_create(CONSTANT, STRING);
-    nd->data.string.value = (char *)malloc(length);
-    strcpy(nd->data.string.value,text);
+    /*nd->data.string.value = (char *)malloc(length);*/
+    nd->data.string.value = text;
+    /*strcpy(nd->data.string.value,text);*/
     nd->data.string.length = length;
     nd->print_node = print_string;
     return nd;
@@ -158,11 +159,13 @@ void print_ternary_operation(FILE * output, struct node * n, int depth) {
 #ifdef DEBUG
     printf("print_ternary_operation\n"); 
 #endif
+    fputs("(", output);
     n->data.ternary_operation.left_operand->print_node(output, n->data.ternary_operation.left_operand, depth);
     fputs("?", output);
     n->data.ternary_operation.middle_operand->print_node(output, n->data.ternary_operation.middle_operand, depth);
     fputs(":", output);
     n->data.ternary_operation.right_operand->print_node(output, n->data.ternary_operation.right_operand, depth);
+    fputs(")", output);
 }
 
 struct node *node_ternary_operation(int operation1, int operation2, struct node *left_operand, struct node *middle_operand, struct node *right_operand)
@@ -174,6 +177,7 @@ struct node *node_ternary_operation(int operation1, int operation2, struct node 
   node->data.ternary_operation.middle_operand = middle_operand;
   node->data.ternary_operation.right_operand = right_operand;
   node->data.ternary_operation.result = 0;
+  node->print_node=print_ternary_operation;
   return node;
 }
 
@@ -751,6 +755,7 @@ struct node *node_func_declarator(struct node *decl, struct node *param_list) {
 
 void print_func_def(FILE * output, struct node * n, int depth) {
     n->data.func_def.func_spec->print_node(output, n->data.func_def.func_spec, depth);
+    fputs("\n",output);
     n->data.func_def.stmt->print_node(output, n->data.func_def.stmt, depth);
 }
 
@@ -767,6 +772,7 @@ void print_func_def_spec(FILE * output, struct node * n, int depth) {
     printf("print_func_def_spec\n"); 
 #endif
     n->data.func_def_spec.spec->print_node(output, n->data.func_def_spec.spec, depth);
+    fputs(" ", output);
     n->data.func_def_spec.decl->print_node(output, n->data.func_def_spec.decl, depth);
 }
 
@@ -792,7 +798,7 @@ void print_param_list(FILE * output, struct node * n, int depth) {
 #endif
     if (NULL != n->data.param_list.init) {
         n->data.param_list.init->print_node(output, n->data.param_list.init, depth);
-        fputs(" , ", output);
+        fputs(",", output);
     }
     n->data.param_list.param->print_node(output, n->data.param_list.param, depth);
 }
@@ -811,6 +817,7 @@ void print_param_decl(FILE * output, struct node * n, int depth) {
 #endif
     n->data.param_decl.decl_spec->print_node(output, n->data.param_decl.decl_spec, depth);
     if (n->data.param_decl.declrtr != NULL) {
+        fputs(" ", output);
         n->data.param_decl.declrtr->print_node(output, n->data.param_decl.declrtr, depth);
     }
 }
@@ -829,8 +836,9 @@ void print_decl(FILE * output, struct node * n, int depth) {
 #endif
     print_indent(output, depth);
     n->data.decl.decl_spec->print_node(output, n->data.decl.decl_spec, depth);
+    fputs(" ", output);
     n->data.decl.decl_list->print_node(output, n->data.decl.decl_list, depth);
-    printf(";\n");
+    fputs(";\n", output);
 }
 
 struct node *node_decl(struct node * decl_spec, struct node * decl_list) {
@@ -847,6 +855,7 @@ void print_decl_list(FILE * output, struct node * n, int depth) {
 #endif
     if (NULL != n->data.decl_list.init) {
         n->data.decl_list.init->print_node(output, n->data.decl_list.init, depth);
+        fputs(", ", output);
     }
     n->data.decl_list.decl->print_node(output, n->data.decl_list.decl, depth);
 }
@@ -914,6 +923,9 @@ struct node *node_expr_statement(struct node *expr) {
 }
 
 void print_null_statement(FILE * output, struct node * n, int depth) {
+#ifdef DEBUG
+    printf("print_null_statement\n"); 
+#endif
     print_indent(output, depth);
     fputs(";\n",output);
 }
@@ -966,6 +978,47 @@ struct node *node_abstract_decl(long int pointer_depth, struct node * dir_abs_de
     node->data.abs_decl.dir_abs_decl = dir_abs_decl;
     node->print_node=print_abstract_decl;
     return node;
+}
+
+void print_translation_unit(FILE * output, struct node * n, int depth) {
+#ifdef DEBUG
+    printf("print_translation_unit\n"); 
+#endif
+    if (NULL != n->data.translation_unit.init) {
+        n->data.translation_unit.init->print_node(output, n->data.translation_unit.init, depth);
+    }
+    n->data.translation_unit.top_level_decl->print_node(output, n->data.translation_unit.top_level_decl, depth);
+}
+
+struct node *node_translation_unit(struct node * init, struct node * top_level_decl){
+    struct node * node = node_create(NODE_TRANSLATION_UNIT, NODE_TRANSLATION_UNIT);
+    node->data.translation_unit.init = init;
+    node->data.translation_unit.top_level_decl = top_level_decl;
+    node->print_node=print_translation_unit;
+    return node;
+
+}
+
+void print_expr_list(FILE *output, struct node*n, int depth){
+  if (NULL != n->data.expr_list.init) {
+#ifdef DEBUG
+    printf("%d\n", n->data.expr_list.init->kind);
+#endif
+    n->data.expr_list.init->print_node(output, n->data.expr_list.init, depth);
+    fputs(",", output);
+  }
+#ifdef DEBUG
+  printf("%d\n", n->data.expr_list.expr->kind);
+#endif
+  n->data.expr_list.expr->print_node(output, n->data.expr_list.expr, depth+1);
+}
+
+struct node *node_expr_list(struct node *init, struct node *expr) {
+  struct node *node = node_create(NODE_EXPR_LIST, NODE_EXPR_LIST);
+  node->data.expr_list.init = init;
+  node->data.expr_list.expr = expr;
+  node->print_node = print_expr_list;
+  return node;
 }
 
 /****/
