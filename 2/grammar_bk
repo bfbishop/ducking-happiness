@@ -1,0 +1,545 @@
+# Grammar for the CSCI E-95 (Formerly CSCI E-295) C Programming Language Subset
+#
+# Changes on 5-Nov-2013
+#   Renamed left_paran_t to left_paren_t
+#   Renamed right_paran_t to right_paren_t
+#   Renamed paranthesized_expr to parenthesized_expr
+#
+# Changes on 6-Mar-2012
+#   Renamed pointer_decl to pointer_declarator
+#   Renamed a reference to expression to expr in expression_statement
+#
+# Changes on 23-Feb-2012
+#   Removed c_char_sequence from the grammar becuase we do not allow
+#     multicharacter constants
+#   Removed last alternative from direct_abstract_declarator
+#     ( direct_abstract_declarator_opt and left_paran_t and
+#     parameter_type_list_opt and right_paren_t ) because we do not allow
+#     function pointers
+#
+# Changes on 20-Feb-2012
+#   Removed declaration_list because it is no longer referenced because we
+#     do not allow pre-Standard, so-called traditional or non-prototyped,
+#     function definitions
+#   Removed the decl alternative from an initial_clause referenced by the
+#     for_expr because we do not allow the C99 form that allows declaration
+#     of variables in the initial expression of a for statement
+#
+# Changes on 14-Feb-2012
+#   Enhanced the html version of the grammar as follows:
+#     Terminal grammar symbols are now rendered in red
+#     Optional non-terminal symbols are now linked to the symbol
+#     Multiple references to a symbol in a single production are now handled
+#       correctly
+#     Correctly maintain multiple spaces from the txt file
+#
+# Changes on 13-Feb-2012
+#   Changed abstract_decl to be abstract_declarator consistently
+#   Changed direct_abstract_decl to be direct_abstract_declarator consistently
+#   Added missing and's in declaration_or_statement_list,
+#     direct_abstract_declarator, function_call, indirection_expr,
+#     parameter_decl, pointer, pointer_decl, relational_expr, shift_expr
+#
+# Changes on 4-Feb-2012
+#   Changed constant_expr to be constant_expr_opt between left_bracket_t
+#   and right_bracket_t in direct_abstract_declarator
+#
+# Changes on 27-Sep-2010
+#   Removed declaration_list_opt clause from function_def_specifier
+#   Added comment identifying the start symbol
+#
+# Changes on 27-Feb-2009
+#   Removed identifier and identifier_list
+#   Removed sign_part
+#   Removed declaration_specifiers_opt clause from declaration_specifiers
+#
+# Naming convention:
+# decl -> declaration
+# expr -> expression
+# _opt -> optional
+# _t -> means a terminal
+# pound sign (#) means comment
+#
+# "and" and "or" symbols have been inserted explicitly into the grammar.
+# For example,
+# non_terminal_1 = ( non_term_2 and non_term_3 ) means we must see first
+#   non_term_2 then non_term_3 to satisfy non_terminal_1
+# non_terminal_1 = ( non_term_2 or non_term_3 ) means either non_term_2 or
+#   non_term_3 must be seen to satisfy non_terminal_1
+#
+# Parentheses are used to denote groupings, such as:
+# non_terminal_1 = ( term_1 and ( term_2 or term_3 ) and term_4 )
+# which means term_1 must be followed by either term_2 or term_3 and then
+#   by term_4 to satisfy non_terminal_1
+#
+############################################################################
+# NOTE: There may be mistakes in typing or even in the grammar specified.
+#       Please use this as a staring point and compare it against the
+#       grammar specified in the book.
+############################################################################
+#
+# The start symbol is translation_unit
+#
+
+abstract_declarator :  pointer 
+	|	 pointer_opt direct_abstract_declarator
+
+additive_expr :  multiplicative_expr 
+	|	 additive_expr add_op multiplicative_expr 
+
+add_op :  ADDITION 
+	|	 SUBTRACTION 
+
+address_expr :  BITAND cast_expr  
+
+array_declarator :  direct_declarator left_bracket_t constant_expr_opt right_bracket_t 
+#             direct_declarator left_bracket_t array_size_expr_opt right_bracket_t  or
+#             direct_declarator left_bracket_t asterisk_t right_bracket_t 
+
+# array_qualifier :  static  or  restrict  or  const  or  volatile 
+# array_qualifier_list :  array_qualifier  or  array_qualifier_list array_qualifier 
+
+# array_size_expr :  assignment_expr  or
+#                  asterisk_t 
+
+
+assignment_expr :  conditional_expr 
+	|	 unary_expr assignment_op assignment_expr 
+
+assignment_op :  ASSIGNMENTSIMPLE 
+	|	 ASSIGNMENTADDITION 
+	|	 ASSIGNMENTSUBTRACTION 
+	|	 ASSIGNMENTMULTIPLICATION 
+	|	 ASSIGNMENTDIVISION 
+	|	 ASSIGNMENTREMAINDER 
+    |    ASSIGNMENTLEFTSHIFT 
+	|	 ASSIGNMENTRIGHTSHIFT 
+	|	 ASSIGNMENTBITWISEAND 
+	|	 ASSIGNMENTBITWISEXOR 
+	|	 ASSIGNMENTBITWISEOR 
+
+# binary_exponent: no floating point support for PS2
+
+# bit_field :  declarator_opt colon_t width 
+
+bitwise_and_expr :  equality_expr 
+	|	 bitwise_and_expr BITAND equality_expr 
+
+
+bitwise_negation_expr :  BITWISENEG cast_expr 
+
+bitwise_or_expr :  bitwise_xor_expr 
+	|	 bitwise_or_expr or_t bitwise_xor_expr 
+
+bitwise_xor_expr :  bitwise_and_expr 
+	|	 bitwise_xor_expr BITXOR bitwise_and_expr 
+
+break_statement :  RW_BREAK SEPSEMICOLON 
+
+#case_label: not in PS2
+
+cast_expr :  unary_expr 
+	|	 PARENLEFT type_name PARENRIGHT cast_expr 
+
+# c-char # see grammar
+# c_char_sequence # see grammar
+
+character_constant # see associated grammar
+
+character_escape_code # see associated grammar
+
+character_type_specifier :  char_t 
+	|	 signed_t char_t 
+	|	 unsigned_t char_t 
+
+comma_expr :  assignment_expr 
+	|	 comma_expr SEQUENTIALCOMMA assignment_expr 
+
+#complex_type_specifier: not in PS2
+
+# component_decl :  type_specifier component_declarator_list 
+
+# component_declarator :  simple_component  or
+#                         bit_field 
+
+# component_declarator_list :  component_declarator  or
+#                              component_declarator_list SEQUENTIALCOMMA component_declarator 
+
+# component_selection_expr :  direct_component_selection  or
+#                             indirect_component_selection 
+
+# compound_literal :  left_paren_t type_name right_paren_t left_brace_t initializer_list SEQUENTIALCOMMA_opt right_brace_t 
+
+compound_statement :  left_brace_t declaration_or_statement_list_opt right_brace_t 
+
+conditional_expr :  logical_or_expr 
+	|	 logical_or_expr question_mark_t expr colon_t conditional_expr 
+
+conditional_statement :  if_statement 
+	|	 if_else_statement 
+
+constant :  integer_constant 
+	|	#  floating_constant  not a part of PS2
+            character_constant 
+	|	 string_constant 
+
+constant_expr :  conditional_expr 
+
+continue_statement :  continue_t SEPSEMICOLON 
+
+# decimal_constant :  nonzero_digit  or
+#                     decimal_constant digit 
+
+# decimal_floating_constant: not a part of PS2
+
+decl :  declaration_specifiers initialized_declarator_list SEPSEMICOLON 
+
+# declaration_list :  decl  or
+#                     declaration_list decl 
+
+declaration_or_statement :  decl 
+	|	 statement 
+
+declaration_or_statement_list :  declaration_or_statement 
+	|	 declaration_or_statement_list declaration_or_statement 
+
+declaration_specifiers :   type_specifier 
+# declaration_specifiers :   type_specifier declaration_specifiers_opt 
+#                            storage_class_specifier declaration_specifiers_opt  or
+#                            type_qualifier declaration_specifiers_opt  or
+#                            function_specifier declaration_specifiers_opt 
+
+declarator :  pointer_declarator 
+	|	 direct_declarator 
+
+#default_label: not a part of PS2 grammar
+
+# designation :  designator_list equals_t 
+
+# designator :  left_bracket_t constant_expr right_bracket_t 
+             #   dot_t identifier  not a part of PS2
+
+# designator_list :  designator  or
+#                    designator_list designator 
+
+digit # see associated grammar
+
+digit_sequence # see associated grammar
+
+direct_abstract_declarator :  PARENLEFT abstract_declarator PARENRIGHT 
+	|	 direct_abstract_declarator_opt left_bracket_t constant_expr_opt right_bracket_t 
+#                              direct_abstract_declarator_opt left_bracket_t constant_expr right_bracket_t 
+#                             direct_abstract_declarator_opt left_bracket_t expr right_bracket_t 
+#                             direct_abstract_declarator_opt left_bracket_t asterisk_t right_bracket_t 
+#                              direct_abstract_declarator_opt left_paren_t parameter_type_list_opt right_paren_t 
+
+# direct_component_selection :  postfix_expr dot_t identifier 
+# dot not a part of PS2
+
+direct_declarator :  simple_declarator 
+	|	 PARENLEFT declarator PARENRIGHT 
+	|	 function_declarator 
+	|	 array_declarator 
+
+do_statement :  do_t statement while_t PARENLEFT expr PARENRIGHT SEPSEMICOLON 
+
+# dotted_digits floating point not a part of PS2
+# dotted_hex_digits floating point not a part of PS2
+
+# enum not a part of PS2
+# enumeration_constant
+# enumeration_constant_definition
+# enumeration_definition_list
+# enumeration_tag
+# enumeration_type_definition
+# enumeration_type_reference
+# enumeration_type_specifier
+
+equality_expr :  relational_expr 
+	|	 equality_expr equality_op relational_expr 
+
+equality_op :  EQ 
+	|	 NE 
+
+escape_char # see associated grammar
+
+escape_code # see associated grammar
+
+# exponent: not a part of PS2 grammar
+
+expr :  comma_expr 
+
+expression_list :  assignment_expr 
+	|	 expression_list SEQUENTIALCOMMA assignment_expr 
+
+expression_statement :  expr SEPSEMICOLON 
+
+# field_list :  component_decl  or
+#               field_list component_decl 
+
+# no floating point support.
+# floating_constant: not a part of PS2
+# floating_point_type_specifier
+# floating_suffix
+
+for_expr :  PARENLEFT initial_clause_opt SEPSEMICOLON expr_opt SEPSEMICOLON expr_opt PARENRIGHT 
+
+for_statement :  for_t for_expr statement 
+
+function_call :  postfix_expr PARENLEFT expression_list_opt PARENRIGHT 
+
+function_declarator :  direct_declarator PARENLEFT parameter_type_list PARENRIGHT 
+#                      direct_declarator left_paren_t identifier_list_opt right_paren_t 
+
+function_definition :  function_def_specifier compound_statement 
+
+function_def_specifier :  declaration_specifiers_opt declarator
+# declaration_list_opt
+
+
+# function specifier: not a part of PS2
+
+goto_statement :  goto_t named_label SEPSEMICOLON 
+
+# h_char_statement # see associated grammar
+# hexadecimal_constant # see associated grammar
+# hexadecimal_floating_constant: not a part of PS2
+# all hex: see associated grammar
+
+# identifier # see associated grammar
+
+# identifier_list :  identifier  or
+#                    parameter_list SEQUENTIALCOMMA identifier_t 
+
+if_else_statement :  if_t PARENLEFT expr PARENRIGHT statement else_t statement 
+
+if_statement :  if_t PARENLEFT expr PARENRIGHT statement 
+
+# indirect_component_selection # see associated grammar 
+# indirect_expr # see grammar
+
+indirection_expr : asterisk_t cast_expr
+
+initial_clause :  expr 
+#                or  decl 
+
+initialized_declarator :  declarator 
+#                         declarator equals_t initializer 
+
+initialized_declarator_list :  initialized_declarator 
+	|	 initialized_declarator_list SEQUENTIALCOMMA initialized_declarator 
+
+# initializer :  assignment_expr  or
+#               left_brace_t initializer_list SEQUENTIALCOMMA_opt right_brace_t 
+
+# initializer_list :  initializer  or
+#                     initializer_list SEQUENTIALCOMMA initializer  or
+#                     designation initializer 
+#                     initializer_list SEQUENTIALCOMMA designation initializer 
+
+integer_constant # see associated grammar
+
+# integer_suffix - not in PS2
+
+integer_type_specifier :  signed_type_specifier 
+	|	 unsigned_type_specifier 
+	|	 character_type_specifier 
+                         #  bool_type_specifier  not a part of PS2
+
+iterative_statement :  while_statement 
+	|	 do_statement 
+	|	 for_statement 
+
+label :  named_label 
+        #  case_label  not part of PS2
+        #  default_label  not part of PS2
+
+labeled_statement :  label colon_t statement 
+
+logical_and_expr :  bitwise_or_expr 
+	|	 logical_and_expr logical_and_t bitwise_or_expr 
+
+logical_negation_expr :  not_t cast_expr 
+
+logical_or_expr :  logical_and_expr 
+	|	 logical_or_expr logical_or_t logical_and_expr 
+
+# long_long_suffix not part of PS2
+# long_suffix
+
+multiplicative_expr :  cast_expr 
+	|	 multiplicative_expr mult_op cast_expr 
+
+mult_op :  asterisk_t 
+	|	 slash_t 
+	|	 percent_t 
+
+named_label :  identifier_t 
+
+nondigit # see grammar
+
+nonzero_digit # see grammar
+
+null_statement :  SEPSEMICOLON 
+
+# octal* see grammar
+# on-off switch no a part of PS2
+
+parameter_decl :  declaration_specifiers declarator 
+	|	 declaration_specifiers abstract_declarator_opt 
+
+parameter_list :  parameter_decl 
+	|	 parameter_list SEQUENTIALCOMMA parameter_decl 
+
+parameter_type_list :  parameter_list 
+                      # parameter_list SEQUENTIALCOMMA dot_t dot_t dot_t  not in PS2
+
+parenthesized_expr :  PARENLEFT expr PARENRIGHT 
+
+pointer :  asterisk_t 
+	|	 asterisk_t pointer 
+
+pointer_declarator :  pointer direct_declarator 
+
+postdecrement_expr :  postfix_expr minus_minus_t 
+
+postfix_expr :  primary_expr 
+	|	 subscript_expr 
+	|	#               component_selection_expr  or
+         function_call 
+	|	 postincrement_expr 
+	|	 postdecrement_expr 
+#               compound_literal 
+
+postincrement_expr :  postfix_expr plus_plus_t 
+
+predecrement_expr :  minus_minus_t unary_expr 
+
+preincrement_expr :  plus_plus_t unary_expr 
+
+# preprocessor_tokens not part of PS2
+
+primary_expr :  identifier_t 
+	|	 constant_t 
+	|	 parenthesized_expr 
+
+# q_char_sequence # see grammar
+
+relational_expr :  shift_expr 
+	|	 relational_expr relational_op shift_expr 
+
+relational_op :  less_than_t 
+	|	 less_than_equals_t 
+	|	 greater_than_t 
+	|	 greater_than_equals_t 
+
+return_statement :  return_t expr_opt SEPSEMICOLON 
+
+# s_char # see grammar
+# s_char_sequence # see grammar
+
+
+# This symbol was missing in original grammar
+shift_expr :  additive_expr 
+	|	 shift_expr shift_op additive_expr 
+
+shift_op :  left_shift_t 
+	|	 right_shift_t 
+
+signed_type_specifier :  short_t 
+	|	 short_t int_t 
+	|	 signed_t short_t 
+	|	 signed_t short_t int_t 
+	|	 int_t 
+	|	 signed_t int_t 
+	|	 signed_t 
+	|	 long_t 
+	|	 long_t int_t 
+	|	 signed_t long_t 
+	|	 signed_t long_t int_t 
+#                        long_t long_t  or
+#                        long_t long_t int_t  or
+#                        signed_t long_t long_t  or
+#                        signed_t long_t long_t int_t 
+
+# sign_part :  ADDITION  or
+#              minus_t 
+
+# This should really  be "simple_component" but it is out of scope either way
+# single_component :  declarator 
+
+simple_declarator :  identifier_t 
+
+#sizeof_expr
+
+statement :  expression_statement 
+	|	 labeled_statement 
+	|	 compound_statement 
+	|	 conditional_statement 
+	|	 iterative_statement 
+	|	#  switch_statement  or
+             break_statement 
+	|	 continue_statement 
+	|	 return_statement 
+	|	 goto_statement 
+	|	 null_statement 
+
+# storage_class_specifier :  auto_t  or
+#                            extern_t  or
+#                            register_t  or
+#                            static_t or
+#                            typedef_t  or
+
+string_constant # see grammar
+
+subscript_expr :  postfix_expr left_bracket_t expr right_bracket_t 
+
+top_level_decl :  decl 
+	|	 function_definition 
+
+translation_unit :  top_level_decl 
+	|	 translation_unit top_level_decl 
+
+#typedef
+type_name :  declaration_specifiers abstract_declarator_opt 
+
+# type_qualifier not PS2
+
+# type_qualifier_list :  type_qualifier  or
+#                        type_qualifier_list type_qualifier 
+
+type_specifier : # enumeration_type_specifier  or
+                 #  floating_point_type_specifier  or
+                  integer_type_specifier 
+	|	#  structure_type_specifier 
+                 # typedef
+                 # union
+                  void_type_specifier 
+
+unary_expr :  postfix_expr 
+	|	#             sizeof_expr  or
+              unary_minus_expr 
+	|	 unary_plus_expr 
+	|	 logical_negation_expr 
+	|	 bitwise_negation_expr 
+	|	 address_expr 
+	|	 indirection_expr 
+	|	 preincrement_expr 
+	|	 predecrement_expr 
+
+unary_minus_expr :  SUBTRACTION cast_expr 
+
+unary_plus_expr : ADDITION cast_expr 
+
+# union*
+
+unsigned_type_specifier :  unsigned_t short_t int_t_opt 
+	|	 unsigned_t int_t_opt 
+	|	 unsigned_t long_t int_t_opt 
+#                          unsigned_t long_t long_t int_t_opt 
+
+void_type_specifier :  void_t 
+
+while_statement :  while_t PARENLEFT expr PARENRIGHT statement 
+
+# width :  constant_expr 

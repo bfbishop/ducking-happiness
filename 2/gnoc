@@ -1,0 +1,277 @@
+abstract_declarator :  pointer 
+	|	 pointer_opt direct_abstract_declarator
+
+additive_expr :  multiplicative_expr 
+	|	 additive_expr add_op multiplicative_expr 
+
+add_op :  ADDITION 
+	|	 SUBTRACTION 
+
+address_expr :  BITAND cast_expr  
+
+array_declarator :  direct_declarator BRACKETLEFT constant_expr_opt BRACKETRIGHT 
+
+assignment_expr :  conditional_expr 
+	|	 unary_expr assignment_op assignment_expr 
+
+assignment_op :  ASSIGNMENTSIMPLE 
+	|	 ASSIGNMENTADDITION 
+	|	 ASSIGNMENTSUBTRACTION 
+	|	 ASSIGNMENTMULTIPLICATION 
+	|	 ASSIGNMENTDIVISION 
+	|	 ASSIGNMENTREMAINDER 
+    |    ASSIGNMENTLEFTSHIFT 
+	|	 ASSIGNMENTRIGHTSHIFT 
+	|	 ASSIGNMENTBITWISEAND 
+	|	 ASSIGNMENTBITWISEXOR 
+	|	 ASSIGNMENTBITWISEOR 
+
+bitwise_and_expr :  equality_expr 
+	|	 bitwise_and_expr BITAND equality_expr 
+
+
+bitwise_negation_expr :  BITWISENEG cast_expr 
+
+bitwise_or_expr :  bitwise_xor_expr 
+	|	 bitwise_or_expr BITWISEOR bitwise_xor_expr 
+
+bitwise_xor_expr :  bitwise_and_expr 
+	|	 bitwise_xor_expr BITXOR bitwise_and_expr 
+
+break_statement :  RW_BREAK SEPSEMICOLON 
+
+cast_expr :  unary_expr 
+	|	 PARENLEFT type_name PARENRIGHT cast_expr 
+
+character_type_specifier :  CHAR 
+	|	 RW_SIGNED CHAR 
+	|	 RW_UNSIGNED CHAR 
+
+comma_expr :  assignment_expr 
+	|	 comma_expr SEQUENTIALCOMMA assignment_expr 
+
+compound_statement :  BRACELEFT declaration_or_statement_list_opt BRACERIGHT 
+
+conditional_expr :  logical_or_expr 
+	|	 logical_or_expr CONDQUEST expr CONDCOLON conditional_expr 
+
+conditional_statement :  if_statement 
+	|	 if_else_statement 
+
+constant :  CON_INT 
+    |       CON_CHAR
+	|  	    CON_STRING
+
+constant_expr :  conditional_expr 
+
+continue_statement :  RW_CONTINUE SEPSEMICOLON 
+
+decl :  declaration_specifiers initialized_declarator_list SEPSEMICOLON 
+
+declaration_or_statement :  decl 
+	|	 statement 
+
+declaration_or_statement_list :  declaration_or_statement 
+	|	 declaration_or_statement_list declaration_or_statement 
+
+declaration_specifiers :   type_specifier 
+
+declarator :  pointer_declarator 
+	|	 direct_declarator 
+
+direct_abstract_declarator :  PARENLEFT abstract_declarator PARENRIGHT 
+	|	 direct_abstract_declarator_opt BRACKETLEFT constant_expr_opt BRACKETRIGHT 
+
+direct_declarator :  simple_declarator 
+	|	 PARENLEFT declarator PARENRIGHT 
+	|	 function_declarator 
+	|	 array_declarator 
+
+do_statement :  RW_DO statement RW_WHILE PARENLEFT expr PARENRIGHT SEPSEMICOLON 
+
+equality_expr :  relational_expr 
+	|	 equality_expr equality_op relational_expr 
+
+equality_op :  EQ 
+	|	 NE 
+
+expr :  comma_expr 
+
+expression_list :  assignment_expr 
+	|	 expression_list SEQUENTIALCOMMA assignment_expr 
+
+expression_statement :  expr SEPSEMICOLON 
+
+for_expr :  PARENLEFT initial_clause_opt SEPSEMICOLON expr_opt SEPSEMICOLON expr_opt PARENRIGHT 
+
+for_statement :  RW_FOR for_expr statement 
+
+function_call :  postfix_expr PARENLEFT expression_list_opt PARENRIGHT 
+
+function_declarator :  direct_declarator PARENLEFT parameter_type_list PARENRIGHT 
+
+function_definition :  function_def_specifier compound_statement 
+
+function_def_specifier :  declaration_specifiers_opt declarator
+
+
+
+goto_statement :  RW_GOTO named_label SEPSEMICOLON 
+
+if_else_statement :  RW_IF PARENLEFT expr PARENRIGHT statement RW_ELSE statement 
+
+if_statement :  RW_IF PARENLEFT expr PARENRIGHT statement 
+
+indirection_expr : MULTIPLY cast_expr
+
+initial_clause :  expr 
+
+initialized_declarator :  declarator 
+
+initialized_declarator_list :  initialized_declarator 
+	|	 initialized_declarator_list SEQUENTIALCOMMA initialized_declarator 
+
+integer_type_specifier :  signed_type_specifier 
+	|	 unsigned_type_specifier 
+	|	 character_type_specifier 
+
+iterative_statement :  while_statement 
+	|	 do_statement 
+	|	 for_statement 
+
+label :  named_label 
+
+labeled_statement :  label CONDCOLON statement 
+
+logical_and_expr :  bitwise_or_expr 
+	|	 logical_and_expr LOGICALAND bitwise_or_expr 
+
+logical_negation_expr :  LOGNEG cast_expr 
+
+logical_or_expr :  logical_and_expr 
+	|	 logical_or_expr LOGICALOR logical_and_expr 
+
+multiplicative_expr :  cast_expr 
+	|	 multiplicative_expr mult_op cast_expr 
+
+mult_op :  MULTIPLY 
+	|	 DIVIDE 
+	|	 REMAINDER 
+
+named_label :  IDENTIFIER 
+
+null_statement :  SEPSEMICOLON 
+
+parameter_decl :  declaration_specifiers declarator 
+	|	 declaration_specifiers abstract_declarator_opt 
+
+parameter_list :  parameter_decl 
+	|	 parameter_list SEQUENTIALCOMMA parameter_decl 
+
+parameter_type_list :  parameter_list 
+
+parenthesized_expr :  PARENLEFT expr PARENRIGHT 
+
+pointer :  MULTIPLY 
+	|	 MULTIPLY pointer 
+
+pointer_declarator :  pointer direct_declarator 
+
+postdecrement_expr :  postfix_expr INCDECDECREMENT 
+
+postfix_expr :  primary_expr 
+	|	 subscript_expr 
+    |    function_call 
+	|	 postincrement_expr 
+	|	 postdecrement_expr 
+
+postincrement_expr :  postfix_expr INCDECINCREMENT 
+
+predecrement_expr :  INCDECDECREMENT unary_expr 
+
+preincrement_expr :  INCDECINCREMENT unary_expr 
+
+primary_expr :  IDENTIFIER 
+	|	 CONSTANT 
+	|	 parenthesized_expr 
+
+relational_expr :  shift_expr 
+	|	 relational_expr relational_op shift_expr 
+
+relational_op :  LT 
+	|	 LE 
+	|	 GT 
+	|	 GE 
+
+return_statement :  RW_RETURN expr_opt SEPSEMICOLON 
+
+shift_expr :  additive_expr 
+	|	 shift_expr shift_op additive_expr 
+
+shift_op :  LEFT 
+	|	 RIGHT 
+
+signed_type_specifier :  RW_SHORT 
+	|	 RW_SHORT RW_INT 
+	|	 RW_SIGNED RW_SHORT 
+	|	 RW_SIGNED RW_SHORT RW_INT 
+	|	 RW_INT 
+	|	 RW_SIGNED RW_INT 
+	|	 RW_SIGNED 
+	|	 RW_LONG 
+	|	 RW_LONG RW_INT 
+	|	 RW_SIGNED RW_LONG 
+	|	 RW_SIGNED RW_LONG RW_INT 
+
+simple_declarator :  IDENTIFIER 
+
+statement :  expression_statement 
+	|	 labeled_statement 
+	|	 compound_statement 
+	|	 conditional_statement 
+	|	 iterative_statement 
+    |    break_statement 
+	|	 continue_statement 
+	|	 return_statement 
+	|	 goto_statement 
+	|	 null_statement 
+
+subscript_expr :  postfix_expr BRACKETLEFT expr BRACKETRIGHT 
+
+top_level_decl :  decl 
+	|	 function_definition 
+
+translation_unit :  top_level_decl 
+	|	 translation_unit top_level_decl 
+
+type_name :  declaration_specifiers abstract_declarator_opt 
+
+type_specifier : integer_type_specifier 
+	|	void_type_specifier 
+
+unary_expr :  postfix_expr 
+	|    unary_minus_expr 
+	|	 unary_plus_expr 
+	|	 logical_negation_expr 
+	|	 bitwise_negation_expr 
+	|	 address_expr 
+	|	 indirection_expr 
+	|	 preincrement_expr 
+	|	 predecrement_expr 
+
+unary_minus_expr :  SUBTRACTION cast_expr 
+
+unary_plus_expr : ADDITION cast_expr 
+
+unsigned_type_specifier :  
+         RW_UNSIGNED RW_SHORT RW_INT
+    |    RW_UNSIGNED RW_SHORT 
+	|	 RW_UNSIGNED RW_INT 
+	|	 RW_UNSIGNED 
+	|	 RW_UNSIGNED RW_LONG RW_INT
+	|	 RW_UNSIGNED RW_LONG
+
+void_type_specifier :  RW_VOID 
+
+while_statement :  RW_WHILE PARENLEFT expr PARENRIGHT statement 
+

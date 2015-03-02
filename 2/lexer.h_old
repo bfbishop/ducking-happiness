@@ -1,0 +1,124 @@
+extern struct lexeme * yylval;
+extern int yylineno;
+/* extern unsigned char yytext[]; */
+extern int yylex();
+
+/*main enum listing all the different types of tokens.
+FILEEND is used because yylex returns 0 after lexing, so we don't want to use the 0 value for anything else */
+/*enum tokens {FILEEND, RESVWORD, ID, NUMBER, CHAR, SHORT, INT, ULONG, STRING,
+             PAREN, BRACKET, BRACE, STMTSEP, INCDEC, LOGNEGOP, BITWISENEGOP,
+             MULOP, ADDOP, SHIFTOP, RELOP, EQUALOP, BITWISEOP, LOGICALOP,
+             CONDITIONAL, ASSIGNOP, SEQUENTIALOP, DOTOP, ATOP, DOLLAROP, GRAVEOP};
+*/
+/*basic kinds*/
+enum kinds {
+        RESERVED_WORD, IDENTIFIER, OPERATOR, CONSTANT
+    };
+
+/*kinds of constants*/
+/*enum constant_types {
+    CON_CHAR, CON_SHORT, CON_INT, CON_ULONG, CON_STRING
+};*/
+
+/* kinds of RESVWORDs */
+enum tokens {
+FILEEND, /*0 is used when input is fully consumed, need to avoid it in the enum*/
+RW_BREAK,
+RW_CHAR,
+RW_CONTINUE,
+RW_DO,
+RW_ELSE,
+RW_FOR,
+RW_GOTO,
+RW_IF,
+RW_INT,
+RW_LONG,
+RW_RETURN,
+RW_SHORT,
+RW_SIGNED,
+RW_UNSIGNED,
+RW_VOID,
+RW_WHILE,
+/*kinds of operators*/
+  /* kinds of PARENs */
+PARENLEFT,
+PARENRIGHT,
+  /* kinds of BRACKETs */
+BRACKETLEFT,
+BRACKETRIGHT,
+  /* kinds of BRACEs */
+BRACELEFT,
+BRACERIGHT,
+  /* kinds of STMTSEPs */
+SEPSEMICOLON,
+  /* kinds of other separators */
+AT,
+DOLLAR,
+GRAVE,
+  /* kinds of INCDECs */
+INCDECINCREMENT,
+INCDECDECREMENT,
+
+  /* kinds of LOGNEGs */
+LOGNEG,
+  /* kinds of BITWISENEGs */
+BITWISENEG,
+  /* kinds of MULOPs */
+ MULTIPLY, 
+ DIVIDE, 
+ REMAINDER, 
+
+  /* kinds of ADDOPs */
+ ADDITION, 
+ SUBTRACTION, 
+
+  /* kinds of SHIFTOPs */
+ LEFT, 
+ RIGHT, 
+
+  /* kinds of RELOPs */
+ LT, 
+ LE, 
+ GT, 
+ GE, 
+
+  /* kinds of EQUALOPs */
+ EQ, 
+ NE, 
+
+  /* kinds of BITWISEOPs */
+ BITOR, 
+ BITXOR, 
+ BITAND,
+
+  /* kinds of LOGICALOPs */
+ LOGICALOR, 
+ LOGICALAND, 
+
+  /* kinds of CONDITIONALs */
+ CONDQUEST,
+ CONDCOLON,
+
+  /* kinds of ASSIGNOPs */
+ ASSIGNMENTSIMPLE, 
+ ASSIGNMENTADDITION, 
+ ASSIGNMENTSUBTRACTION, 
+ ASSIGNMENTMULTIPLICATION, 
+ ASSIGNMENTDIVISION, 
+ ASSIGNMENTREMAINDER, 
+ ASSIGNMENTLEFTSHIFT, 
+ ASSIGNMENTRIGHTSHIFT, 
+ ASSIGNMENTBITWISEAND, 
+ ASSIGNMENTBITWISEXOR,
+ ASSIGNMENTBITWISEOR, 
+
+  /* kinds of SEQUENTIALOPs */
+ SEQUENTIALCOMMA, 
+ /* other lexemes */
+ID,
+CHAR,
+INT,
+ULONG,
+STRING
+    };
+    */

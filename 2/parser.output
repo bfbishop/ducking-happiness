@@ -1,0 +1,471 @@
+Terminals unused in grammar
+
+   STRING
+   BREAK
+   CHAR
+   CONTINUE
+   DO
+   ELSE
+   FOR
+   GOTO
+   IF
+   INT
+   LONG
+   RETURN
+   SHORT
+   SIGNED
+   UNSIGNED
+   VOID
+   WHILE
+   LEFT_SQUARE
+   RIGHT_SQUARE
+   LEFT_CURLY
+   RIGHT_CURLY
+   AMPERSAND
+   CARET
+   COLON
+   COMMA
+   EXCLAMATION
+   GREATER
+   LESS
+   PERCENT
+   QUESTION
+   TILDE
+   VBAR
+   AMPERSAND_AMPERSAND
+   AMPERSAND_EQUAL
+   ASTERISK_EQUAL
+   CARET_EQUAL
+   EQUAL_EQUAL
+   EXCLAMATION_EQUAL
+   GREATER_EQUAL
+   GREATER_GREATER
+   GREATER_GREATER_EQUAL
+   LESS_EQUAL
+   LESS_LESS
+   LESS_LESS_EQUAL
+   MINUS_EQUAL
+   MINUS_MINUS
+   PERCENT_EQUAL
+   PLUS_EQUAL
+   PLUS_PLUS
+   SLASH_EQUAL
+   VBAR_EQUAL
+   VBAR_VBAR
+
+
+Grammar
+
+    0 $accept: program $end
+
+    1 additive_expr: multiplicative_expr
+    2              | additive_expr PLUS multiplicative_expr
+    3              | additive_expr MINUS multiplicative_expr
+
+    4 assignment_expr: additive_expr
+    5                | primary_expr EQUAL additive_expr
+
+    6 expr: assignment_expr
+
+    7 identifier: IDENTIFIER
+
+    8 multiplicative_expr: primary_expr
+    9                    | multiplicative_expr ASTERISK primary_expr
+   10                    | multiplicative_expr SLASH primary_expr
+
+   11 primary_expr: identifier
+   12             | NUMBER
+   13             | LEFT_PAREN expr RIGHT_PAREN
+
+   14 program: statement_list
+
+   15 statement: expr SEMICOLON
+
+   16 statement_list: statement
+   17               | statement_list statement
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+error (256)
+IDENTIFIER (258) 7
+NUMBER (259) 12
+STRING (260)
+BREAK (261)
+CHAR (262)
+CONTINUE (263)
+DO (264)
+ELSE (265)
+FOR (266)
+GOTO (267)
+IF (268)
+INT (269)
+LONG (270)
+RETURN (271)
+SHORT (272)
+SIGNED (273)
+UNSIGNED (274)
+VOID (275)
+WHILE (276)
+LEFT_PAREN (277) 13
+RIGHT_PAREN (278) 13
+LEFT_SQUARE (279)
+RIGHT_SQUARE (280)
+LEFT_CURLY (281)
+RIGHT_CURLY (282)
+AMPERSAND (283)
+ASTERISK (284) 9
+CARET (285)
+COLON (286)
+COMMA (287)
+EQUAL (288) 5
+EXCLAMATION (289)
+GREATER (290)
+LESS (291)
+MINUS (292) 3
+PERCENT (293)
+PLUS (294) 2
+SEMICOLON (295) 15
+SLASH (296) 10
+QUESTION (297)
+TILDE (298)
+VBAR (299)
+AMPERSAND_AMPERSAND (300)
+AMPERSAND_EQUAL (301)
+ASTERISK_EQUAL (302)
+CARET_EQUAL (303)
+EQUAL_EQUAL (304)
+EXCLAMATION_EQUAL (305)
+GREATER_EQUAL (306)
+GREATER_GREATER (307)
+GREATER_GREATER_EQUAL (308)
+LESS_EQUAL (309)
+LESS_LESS (310)
+LESS_LESS_EQUAL (311)
+MINUS_EQUAL (312)
+MINUS_MINUS (313)
+PERCENT_EQUAL (314)
+PLUS_EQUAL (315)
+PLUS_PLUS (316)
+SLASH_EQUAL (317)
+VBAR_EQUAL (318)
+VBAR_VBAR (319)
+
+
+Nonterminals, with rules where they appear
+
+$accept (65)
+    on left: 0
+additive_expr (66)
+    on left: 1 2 3, on right: 2 3 4 5
+assignment_expr (67)
+    on left: 4 5, on right: 6
+expr (68)
+    on left: 6, on right: 13 15
+identifier (69)
+    on left: 7, on right: 11
+multiplicative_expr (70)
+    on left: 8 9 10, on right: 1 2 3 9 10
+primary_expr (71)
+    on left: 11 12 13, on right: 5 8 9 10
+program (72)
+    on left: 14, on right: 0
+statement (73)
+    on left: 15, on right: 16 17
+statement_list (74)
+    on left: 16 17, on right: 14 17
+
+
+State 0
+
+    0 $accept: . program $end
+
+    IDENTIFIER  shift, and go to state 1
+    NUMBER      shift, and go to state 2
+    LEFT_PAREN  shift, and go to state 3
+
+    additive_expr        go to state 4
+    assignment_expr      go to state 5
+    expr                 go to state 6
+    identifier           go to state 7
+    multiplicative_expr  go to state 8
+    primary_expr         go to state 9
+    program              go to state 10
+    statement            go to state 11
+    statement_list       go to state 12
+
+
+State 1
+
+    7 identifier: IDENTIFIER .
+
+    $default  reduce using rule 7 (identifier)
+
+
+State 2
+
+   12 primary_expr: NUMBER .
+
+    $default  reduce using rule 12 (primary_expr)
+
+
+State 3
+
+   13 primary_expr: LEFT_PAREN . expr RIGHT_PAREN
+
+    IDENTIFIER  shift, and go to state 1
+    NUMBER      shift, and go to state 2
+    LEFT_PAREN  shift, and go to state 3
+
+    additive_expr        go to state 4
+    assignment_expr      go to state 5
+    expr                 go to state 13
+    identifier           go to state 7
+    multiplicative_expr  go to state 8
+    primary_expr         go to state 9
+
+
+State 4
+
+    2 additive_expr: additive_expr . PLUS multiplicative_expr
+    3              | additive_expr . MINUS multiplicative_expr
+    4 assignment_expr: additive_expr .
+
+    MINUS  shift, and go to state 14
+    PLUS   shift, and go to state 15
+
+    $default  reduce using rule 4 (assignment_expr)
+
+
+State 5
+
+    6 expr: assignment_expr .
+
+    $default  reduce using rule 6 (expr)
+
+
+State 6
+
+   15 statement: expr . SEMICOLON
+
+    SEMICOLON  shift, and go to state 16
+
+
+State 7
+
+   11 primary_expr: identifier .
+
+    $default  reduce using rule 11 (primary_expr)
+
+
+State 8
+
+    1 additive_expr: multiplicative_expr .
+    9 multiplicative_expr: multiplicative_expr . ASTERISK primary_expr
+   10                    | multiplicative_expr . SLASH primary_expr
+
+    ASTERISK  shift, and go to state 17
+    SLASH     shift, and go to state 18
+
+    $default  reduce using rule 1 (additive_expr)
+
+
+State 9
+
+    5 assignment_expr: primary_expr . EQUAL additive_expr
+    8 multiplicative_expr: primary_expr .
+
+    EQUAL  shift, and go to state 19
+
+    $default  reduce using rule 8 (multiplicative_expr)
+
+
+State 10
+
+    0 $accept: program . $end
+
+    $end  shift, and go to state 20
+
+
+State 11
+
+   16 statement_list: statement .
+
+    $default  reduce using rule 16 (statement_list)
+
+
+State 12
+
+   14 program: statement_list .
+   17 statement_list: statement_list . statement
+
+    IDENTIFIER  shift, and go to state 1
+    NUMBER      shift, and go to state 2
+    LEFT_PAREN  shift, and go to state 3
+
+    $default  reduce using rule 14 (program)
+
+    additive_expr        go to state 4
+    assignment_expr      go to state 5
+    expr                 go to state 6
+    identifier           go to state 7
+    multiplicative_expr  go to state 8
+    primary_expr         go to state 9
+    statement            go to state 21
+
+
+State 13
+
+   13 primary_expr: LEFT_PAREN expr . RIGHT_PAREN
+
+    RIGHT_PAREN  shift, and go to state 22
+
+
+State 14
+
+    3 additive_expr: additive_expr MINUS . multiplicative_expr
+
+    IDENTIFIER  shift, and go to state 1
+    NUMBER      shift, and go to state 2
+    LEFT_PAREN  shift, and go to state 3
+
+    identifier           go to state 7
+    multiplicative_expr  go to state 23
+    primary_expr         go to state 24
+
+
+State 15
+
+    2 additive_expr: additive_expr PLUS . multiplicative_expr
+
+    IDENTIFIER  shift, and go to state 1
+    NUMBER      shift, and go to state 2
+    LEFT_PAREN  shift, and go to state 3
+
+    identifier           go to state 7
+    multiplicative_expr  go to state 25
+    primary_expr         go to state 24
+
+
+State 16
+
+   15 statement: expr SEMICOLON .
+
+    $default  reduce using rule 15 (statement)
+
+
+State 17
+
+    9 multiplicative_expr: multiplicative_expr ASTERISK . primary_expr
+
+    IDENTIFIER  shift, and go to state 1
+    NUMBER      shift, and go to state 2
+    LEFT_PAREN  shift, and go to state 3
+
+    identifier    go to state 7
+    primary_expr  go to state 26
+
+
+State 18
+
+   10 multiplicative_expr: multiplicative_expr SLASH . primary_expr
+
+    IDENTIFIER  shift, and go to state 1
+    NUMBER      shift, and go to state 2
+    LEFT_PAREN  shift, and go to state 3
+
+    identifier    go to state 7
+    primary_expr  go to state 27
+
+
+State 19
+
+    5 assignment_expr: primary_expr EQUAL . additive_expr
+
+    IDENTIFIER  shift, and go to state 1
+    NUMBER      shift, and go to state 2
+    LEFT_PAREN  shift, and go to state 3
+
+    additive_expr        go to state 28
+    identifier           go to state 7
+    multiplicative_expr  go to state 8
+    primary_expr         go to state 24
+
+
+State 20
+
+    0 $accept: program $end .
+
+    $default  accept
+
+
+State 21
+
+   17 statement_list: statement_list statement .
+
+    $default  reduce using rule 17 (statement_list)
+
+
+State 22
+
+   13 primary_expr: LEFT_PAREN expr RIGHT_PAREN .
+
+    $default  reduce using rule 13 (primary_expr)
+
+
+State 23
+
+    3 additive_expr: additive_expr MINUS multiplicative_expr .
+    9 multiplicative_expr: multiplicative_expr . ASTERISK primary_expr
+   10                    | multiplicative_expr . SLASH primary_expr
+
+    ASTERISK  shift, and go to state 17
+    SLASH     shift, and go to state 18
+
+    $default  reduce using rule 3 (additive_expr)
+
+
+State 24
+
+    8 multiplicative_expr: primary_expr .
+
+    $default  reduce using rule 8 (multiplicative_expr)
+
+
+State 25
+
+    2 additive_expr: additive_expr PLUS multiplicative_expr .
+    9 multiplicative_expr: multiplicative_expr . ASTERISK primary_expr
+   10                    | multiplicative_expr . SLASH primary_expr
+
+    ASTERISK  shift, and go to state 17
+    SLASH     shift, and go to state 18
+
+    $default  reduce using rule 2 (additive_expr)
+
+
+State 26
+
+    9 multiplicative_expr: multiplicative_expr ASTERISK primary_expr .
+
+    $default  reduce using rule 9 (multiplicative_expr)
+
+
+State 27
+
+   10 multiplicative_expr: multiplicative_expr SLASH primary_expr .
+
+    $default  reduce using rule 10 (multiplicative_expr)
+
+
+State 28
+
+    2 additive_expr: additive_expr . PLUS multiplicative_expr
+    3              | additive_expr . MINUS multiplicative_expr
+    5 assignment_expr: primary_expr EQUAL additive_expr .
+
+    MINUS  shift, and go to state 14
+    PLUS   shift, and go to state 15
+
+    $default  reduce using rule 5 (assignment_expr)
