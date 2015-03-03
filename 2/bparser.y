@@ -111,9 +111,9 @@ struct node * btest;
 
 program : translation_unit { root_node = $1; }
 
-abstract_declarator :  pointer 
-    |	 direct_abstract_declarator
-	|	 pointer direct_abstract_declarator   
+abstract_declarator :  pointer { $$ = node_abstract_decl((long int)$1, NULL); }
+    |	 direct_abstract_declarator { $$ = node_abstract_decl(0, $1); }
+	|	 pointer direct_abstract_declarator { $$ = node_abstract_decl((long int)$1, $2); }
 ;
 additive_expr :  multiplicative_expr 
 	|	 additive_expr add_op multiplicative_expr { $$ = node_binary_operation((long int)$2, $1, $3); }

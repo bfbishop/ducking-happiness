@@ -21,7 +21,7 @@ extern int yylineno;
 void print_indent(FILE * output, int depth) {
     int i;
     for (i = 0; i < depth; i++) {
-        fputs("    ", output);
+        fputs("  ", output);
     }
 }
 
@@ -939,6 +939,32 @@ struct node *node_type_name(struct node * decl_spec, struct node * abs_decl){
     node->data.type_name.decl_spec = decl_spec;
     node->data.type_name.abs_decl = abs_decl;
     node->print_node=print_type_name;
+    return node;
+}
+
+void print_abstract_decl(FILE * output, struct node * n, int depth) {
+    int i;
+#ifdef DEBUG
+    printf("print_abstract_decl\n"); 
+#endif
+
+    for (i = 0; i < n->data.abs_decl.pointer_depth; i++) {
+        fputs("(*",output);
+    }
+    if (n->data.abs_decl.dir_abs_decl != NULL) {
+        n->data.abs_decl.dir_abs_decl->print_node(output, n->data.abs_decl.dir_abs_decl, depth);
+    }
+    for (i = 0; i < n->data.abs_decl.pointer_depth; i++) {
+        fputs(")",output);
+    }
+    
+}
+
+struct node *node_abstract_decl(long int pointer_depth, struct node * dir_abs_decl) {
+    struct node * node = node_create(NODE_TYPE_NAME, NODE_TYPE_NAME);
+    node->data.abs_decl.pointer_depth = pointer_depth;
+    node->data.abs_decl.dir_abs_decl = dir_abs_decl;
+    node->print_node=print_abstract_decl;
     return node;
 }
 

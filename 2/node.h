@@ -45,7 +45,8 @@ enum node_kinds {
         NODE_COMPOUND_STATEMENT,
         NODE_EXPR_STATEMENT,
         NODE_NULL_STATEMENT,
-        NODE_TYPE_NAME
+        NODE_TYPE_NAME,
+        NODE_ABS_DECL
     };
 
 enum while_kinds {
@@ -204,6 +205,10 @@ struct node {
       struct node *decl_spec;
       struct node *abs_decl;
     } type_name;
+    struct {
+      int pointer_depth;
+      struct node *dir_abs_decl;
+    } abs_decl;
   } data;
 };
 
@@ -246,6 +251,7 @@ struct node *node_compound_statement(struct node *decl_or_stmt_list);
 struct node *node_expr_statement(struct node *expr);
 struct node *node_null_statement();
 struct node *node_type_name(struct node * decl_spec, struct node * abs_decl);
+struct node *node_abstract_decl(long int pointer_depth, struct node * dir_abs_decl);
 
 long int node_get_result(struct node *expression);
 

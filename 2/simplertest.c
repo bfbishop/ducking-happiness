@@ -1,5 +1,6 @@
 /*nonsense program to test syntax*/
 int ***main(int argc, char * argv[]) {
+        char *[];
         char * a[];
         char ******* a[9];
         a[b] = 9;
@@ -69,6 +70,7 @@ int ***main(int argc, char * argv[]) {
         a | b | c;
         a & b & c;
         a ^ b ^ c;
+
 }
 
 void l (void);
