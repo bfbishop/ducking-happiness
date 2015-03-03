@@ -1,5 +1,7 @@
 int main(void) {
     int a;
+    for (;;) {
+    }
     a=1;
     a++;
     long int ***** brain;

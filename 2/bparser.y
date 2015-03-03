@@ -29,7 +29,10 @@ struct node * btest;
 
 %start program
 
-%token RW_BREAK RW_CHAR RW_CONTINUE RW_DO RW_FOR RW_GOTO RW_IF RW_INT RW_LONG RW_RETURN RW_SHORT RW_SIGNED RW_UNSIGNED RW_VOID RW_WHILE
+%token RW_BREAK RW_CHAR RW_CONTINUE RW_DO RW_ELSE RW_FOR RW_GOTO RW_IF RW_INT RW_LONG RW_RETURN RW_SHORT RW_SIGNED RW_UNSIGNED RW_VOID RW_WHILE
+
+%nonassoc PARENRIGHT
+%nonassoc RW_ELSE
 
 %token ADDITION
 %token ASSIGNMENTADDITION
@@ -72,7 +75,7 @@ struct node * btest;
 %token MULTIPLY
 %token NE
 %token PARENLEFT
-%token PARENRIGHT RW_ELSE
+%token PARENRIGHT
 %token REMAINDER
 %token RIGHT
 %token SEPSEMICOLON
@@ -110,10 +113,7 @@ program : translation_unit { root_node = $1; }
 
 abstract_declarator :  pointer 
     |	 direct_abstract_declarator
-	|	 pointer direct_abstract_declarator  { struct node * decl = $2;
-                                               decl->data.type.pointer_depth=(long int)$1;
-                                               $$ = decl;
-                                             }
+	|	 pointer direct_abstract_declarator   
 ;
 additive_expr :  multiplicative_expr 
 	|	 additive_expr add_op multiplicative_expr { $$ = node_binary_operation((long int)$2, $1, $3); }
@@ -121,10 +121,10 @@ additive_expr :  multiplicative_expr
 add_op :  ADDITION { $$ = (struct node *)ADDITION; }
 	|	 SUBTRACTION { $$ = (struct node *)SUBTRACTION; }
 ;
-address_expr :  BITAND cast_expr { $$ = node_unary_operation(BITAND, $2); } 
+address_expr :  BITAND cast_expr { $$ = node_unary_operation(BITAND, PRE, $2); } 
 ;
-array_declarator :  direct_declarator BRACKETLEFT BRACKETRIGHT { $$ = node_subscript_statement($1, NULL); }
-    |    direct_declarator BRACKETLEFT constant_expr BRACKETRIGHT  { $$ = node_subscript_statement($1, $3); } 
+array_declarator :  direct_declarator BRACKETLEFT BRACKETRIGHT { $$ = node_subscript_decl($1, NULL); printf("ARRAY null\n"); }
+    |    direct_declarator BRACKETLEFT constant_expr BRACKETRIGHT  { $$ = node_subscript_decl($1, $3); printf("ARRAY nonull\n"); } 
 ;
 assignment_expr :  conditional_expr 
 	|	 unary_expr assignment_op assignment_expr { $$ = node_binary_operation((long int)$2, $1, $3); }
@@ -142,31 +142,31 @@ assignment_op :  ASSIGNMENTSIMPLE { $$ = (struct node *) ASSIGNMENTSIMPLE ; }
 	|	 ASSIGNMENTBITWISEOR { $$ = (struct node *) ASSIGNMENTBITWISEOR ; } 
 ;
 bitwise_and_expr :  equality_expr 
-	|	 bitwise_and_expr BITAND equality_expr { $$ = node_binary_operation((long int)$2, $1, $3); }
+	|	 bitwise_and_expr BITAND equality_expr { $$ = node_binary_operation(BITAND, $1, $3); }
 ;
 
-bitwise_negation_expr :  BITWISENEG cast_expr { $$ = node_unary_operation((long int)$1, $2); }
+bitwise_negation_expr :  BITWISENEG cast_expr { $$ = node_unary_operation(BITWISENEG, PRE, $2); }
 ;
 bitwise_or_expr :  bitwise_xor_expr 
-	|	 bitwise_or_expr BITOR bitwise_xor_expr { $$ = node_binary_operation((long int)$2, $1, $3); }
+	|	 bitwise_or_expr BITOR bitwise_xor_expr { $$ = node_binary_operation(BITOR, $1, $3); }
 ;
 bitwise_xor_expr :  bitwise_and_expr 
-	|	 bitwise_xor_expr BITXOR bitwise_and_expr { $$ = node_binary_operation((long int)$2, $1, $3); }
+	|	 bitwise_xor_expr BITXOR bitwise_and_expr { $$ = node_binary_operation(BITXOR, $1, $3); }
 ;
 break_statement :  RW_BREAK SEPSEMICOLON { $$ = node_break(); }
 ;
 cast_expr :  unary_expr 
 	|	 PARENLEFT type_name PARENRIGHT cast_expr { $$ = node_cast_expr($2, $4); }
 ;
-character_type_specifier :  RW_CHAR { $$ = node_type(TYPE_SCHAR, 0, NULL);}
-	|	 RW_SIGNED RW_CHAR { $$ = node_type(TYPE_SCHAR, 0, NULL);}
-	|	 RW_UNSIGNED RW_CHAR { $$ = node_type(TYPE_UCHAR, 0, NULL);}
+character_type_specifier :  RW_CHAR { $$ = node_type_spec(TYPE_SCHAR);}
+	|	 RW_SIGNED RW_CHAR { $$ = node_type_spec(TYPE_SCHAR);}
+	|	 RW_UNSIGNED RW_CHAR { $$ = node_type_spec(TYPE_UCHAR);}
 ;
 comma_expr :  assignment_expr 
 	|	 comma_expr SEQUENTIALCOMMA assignment_expr { $$ = node_comma_expr($2, $1);}
 ;
-compound_statement :  BRACELEFT BRACERIGHT 
-    |    BRACELEFT declaration_or_statement_list BRACERIGHT { $$ = $2; }
+compound_statement :  BRACELEFT BRACERIGHT { $$ = node_compound_statement(NULL); }
+    |    BRACELEFT declaration_or_statement_list BRACERIGHT { $$ = node_compound_statement($2); }
 ;
 conditional_expr :  logical_or_expr 
 	|	 logical_or_expr CONDQUEST expr CONDCOLON conditional_expr { $$ = node_ternary_operation(CONDQUEST,CONDCOLON,$1, $3, $5); }
@@ -197,17 +197,17 @@ declarator :  pointer_declarator
 	|	 direct_declarator 
 ;
 direct_abstract_declarator :  PARENLEFT abstract_declarator PARENRIGHT { $$ = $2; }
-	|	 BRACKETLEFT BRACKETRIGHT { $$ = NULL; }
-	|	 BRACKETLEFT constant_expr BRACKETRIGHT { $$ = $2; }
-	|	 direct_abstract_declarator BRACKETLEFT BRACKETRIGHT 
-	|	 direct_abstract_declarator BRACKETLEFT constant_expr BRACKETRIGHT { $$ = node_subscript_statement($1, $3); }
+	|	 BRACKETLEFT BRACKETRIGHT { $$ = node_subscript_decl(NULL, NULL); printf("NULLZ\n");}
+	|	 BRACKETLEFT constant_expr BRACKETRIGHT { $$ = node_subscript_decl(NULL, $3); printf("NULL after\n"); }
+	|	 direct_abstract_declarator BRACKETLEFT BRACKETRIGHT { $$ = node_subscript_decl($1, NULL); printf("NULL before\n"); }
+	|	 direct_abstract_declarator BRACKETLEFT constant_expr BRACKETRIGHT { $$ = node_subscript_decl($1, $3); printf("FULLZ\n"); }
 ;
-direct_declarator :  simple_declarator 
+direct_declarator :  simple_declarator
 	|	 PARENLEFT declarator PARENRIGHT { $$ = $2; }
 	|	 function_declarator  
 	|	 array_declarator 
 ;
-do_statement :  RW_DO statement RW_WHILE PARENLEFT expr PARENRIGHT SEPSEMICOLON { $$ = node_while_statement(DO_WHILE, $5, $3); }
+do_statement :  RW_DO statement RW_WHILE PARENLEFT expr PARENRIGHT SEPSEMICOLON { $$ = node_while_statement(DO_WHILE, $5, $2); }
 ;
 equality_expr :  relational_expr 
 	|	 equality_expr equality_op relational_expr { $$ = node_binary_operation((long int)$2, $1, $3); }
@@ -220,7 +220,7 @@ expr :  comma_expr
 expression_list :  assignment_expr 
 	|	 expression_list SEQUENTIALCOMMA assignment_expr { $$ = node_statement_list($1, $3); }
 ;
-expression_statement :  expr SEPSEMICOLON 
+expression_statement :  expr SEPSEMICOLON { $$ = node_expr_statement($1); }
 ;
 for_expr :  PARENLEFT initial_clause SEPSEMICOLON expr SEPSEMICOLON expr PARENRIGHT { $$ = node_for_statement($2, $4, $6, NULL); } 
     |    PARENLEFT SEPSEMICOLON expr SEPSEMICOLON expr PARENRIGHT { $$ = node_for_statement(NULL, $3, $5, NULL); }
@@ -237,7 +237,7 @@ for_statement :  RW_FOR for_expr statement { struct node * for_expr = $2;
                                            }
 ;
 function_call :  postfix_expr PARENLEFT PARENRIGHT { $$ = node_function_call($1, NULL); }
-    |   postfix_expr PARENLEFT expression_list PARENRIGHT { $$ = node_function_call($1, $2); }
+    |   postfix_expr PARENLEFT expression_list PARENRIGHT { $$ = node_function_call($1, $3); }
 ;
 
 function_declarator :  direct_declarator PARENLEFT parameter_type_list PARENRIGHT { 
@@ -247,79 +247,74 @@ function_declarator :  direct_declarator PARENLEFT parameter_type_list PARENRIGH
 function_definition :  function_def_specifier compound_statement { $$ = node_function_def($1, $2); }
 ;
 function_def_specifier :  declarator { $$ = node_function_def_spec(NULL, $1); }
-    |   declaration_specifiers declarator { struct node * decl_spec;
-                                            decl_spec = $1;
-                                            decl_spec->data.type.id = $2->data.func_declarator.decl;
-                                            $$ = node_function_def_spec($1, $2); }
+    |   declaration_specifiers declarator { $$ = node_function_def_spec($1, $2); }
 ;
-
 
 goto_statement :  RW_GOTO named_label SEPSEMICOLON { $$ = node_goto($2); }
 ;
 if_else_statement :  RW_IF PARENLEFT expr PARENRIGHT statement RW_ELSE statement { $$ = node_if_else_statement($3, $5, $7); }
 ;
-if_statement :  RW_IF PARENLEFT expr PARENRIGHT statement { $$ = node_if_statement($3, $5); }
+if_statement :  RW_IF PARENLEFT expr PARENRIGHT statement
+{ $$ = node_if_statement($3, $5); }
 ;
-indirection_expr : MULTIPLY cast_expr { $$ = node_unary_operation(MULTIPLY, $2); }
+indirection_expr : MULTIPLY cast_expr { $$ = node_unary_operation(MULTIPLY, PRE, $2); }
 ;
 initial_clause :  expr 
 ;
 initialized_declarator :  declarator 
 ;
-initialized_declarator_list :  initialized_declarator
-	|	 initialized_declarator_list SEQUENTIALCOMMA initialized_declarator 
+initialized_declarator_list :  initialized_declarator { $$ = node_decl_list(NULL, $1); }
+|	 initialized_declarator_list SEQUENTIALCOMMA initialized_declarator { $$ = node_decl_list($1, $3); }
 ;
 integer_type_specifier :  signed_type_specifier 
-	|	 unsigned_type_specifier 
-	|	 character_type_specifier 
+|	 unsigned_type_specifier 
+|	 character_type_specifier 
 ;
 iterative_statement :  while_statement 
-	|	 do_statement 
-	|	 for_statement 
+|	 do_statement 
+|	 for_statement 
 ;
 label :  named_label 
 ;
 labeled_statement :  label CONDCOLON statement { $$ = node_labeled_statement($1, $3); }
 ;
 logical_and_expr :  bitwise_or_expr 
-	|	 logical_and_expr LOGICALAND bitwise_or_expr { $$ = node_binary_operation(LOGICALAND, $1, $3); }
+|	 logical_and_expr LOGICALAND bitwise_or_expr { $$ = node_binary_operation(LOGICALAND, $1, $3); }
 ;
-logical_negation_expr :  LOGNEG cast_expr { $$ = node_unary_operation(LOGNEG, $2); }
+logical_negation_expr :  LOGNEG cast_expr { $$ = node_unary_operation(LOGNEG, PRE, $2); }
 ;
 logical_or_expr :  logical_and_expr 
-	|	 logical_or_expr LOGICALOR logical_and_expr { $$ = node_binary_operation(LOGICALOR, $1, $3); }
+|	 logical_or_expr LOGICALOR logical_and_expr { $$ = node_binary_operation(LOGICALOR, $1, $3); }
 ;
 multiplicative_expr :  cast_expr 
-	|	 multiplicative_expr mult_op cast_expr { $$ = node_binary_operation((long int)$2, $1, $3); }
+|	 multiplicative_expr mult_op cast_expr { $$ = node_binary_operation((long int)$2, $1, $3); }
 ;
 mult_op :  MULTIPLY { $$ = (struct node *)MULTIPLY; }
-	|	 DIVIDE { $$ = (struct node *)DIVIDE; }
-	|	 REMAINDER { $$ = (struct node *)REMAINDER; }
+|	 DIVIDE { $$ = (struct node *)DIVIDE; }
+|	 REMAINDER { $$ = (struct node *)REMAINDER; }
 ;
 named_label :  ID 
 ;
 null_statement :  SEPSEMICOLON { $$ = NULL; }
 ;
-parameter_decl :  declaration_specifiers declarator 
-	|	 declaration_specifiers 
-	|	 declaration_specifiers abstract_declarator
+parameter_decl :  declaration_specifiers declarator { $$ = node_param_decl($1,$2); }
+|	 declaration_specifiers { $$ = node_param_decl($1,NULL); }
+|	 declaration_specifiers abstract_declarator { $$ = node_param_decl($1,$2); }
 ;
 parameter_list :  parameter_decl { $$ = node_param_list(NULL, $1); }
-	|	 parameter_list SEQUENTIALCOMMA parameter_decl { $$ = node_param_list($3, $1); }
+|	 parameter_list SEQUENTIALCOMMA parameter_decl { $$ = node_param_list($1, $3); }
 ;
 parameter_type_list :  parameter_list 
 ;
 parenthesized_expr :  PARENLEFT expr PARENRIGHT { $$ = $2; }
 ;
 pointer :  MULTIPLY { $$ = (struct node *)1; }
-	|	 MULTIPLY pointer { $$ = (struct node *)((long int) $1)+1; }
+|	 MULTIPLY pointer { $$ = (struct node *)((long int) $2+1); }
 ;
-pointer_declarator :  pointer direct_declarator   { struct node * decl = $2;
-                                                  decl->data.type.pointer_depth=(long int)$1;
-                                                  $$ = decl;
+pointer_declarator :  pointer direct_declarator   { $$ = node_pointer_decl((long int)$1, $2);
                                                   }
 ;
-postdecrement_expr :  postfix_expr INCDECDECREMENT { $$ = node_unary_operation(INCDECDECREMENT, $1); }
+postdecrement_expr :  postfix_expr INCDECDECREMENT { $$ = node_unary_operation(INCDECDECREMENT, POST, $1); }
 ;
 postfix_expr :  primary_expr 
 	|	 subscript_expr 
@@ -327,14 +322,14 @@ postfix_expr :  primary_expr
 	|	 postincrement_expr 
 	|	 postdecrement_expr 
 ;
-postincrement_expr :  postfix_expr INCDECINCREMENT { $$ = node_unary_operation(INCDECINCREMENT, $1); }
+postincrement_expr :  postfix_expr INCDECINCREMENT { $$ = node_unary_operation(INCDECINCREMENT, POST, $1); }
 ;
-predecrement_expr :  INCDECDECREMENT unary_expr { $$ = node_unary_operation(INCDECDECREMENT, $2); }
+predecrement_expr :  INCDECDECREMENT unary_expr { $$ = node_unary_operation(INCDECDECREMENT, PRE, $2); }
 ;
-preincrement_expr :  INCDECINCREMENT unary_expr { $$ = node_unary_operation(INCDECINCREMENT, $2); } 
+preincrement_expr :  INCDECINCREMENT unary_expr { $$ = node_unary_operation(INCDECINCREMENT, PRE, $2); } 
 ;
-primary_expr :  ID 
-	|	 constant 
+primary_expr :  ID { $$ = node_primary_expr($1); }
+	|	 constant { $$ = node_primary_expr($1); }
 	|	 parenthesized_expr
 ;
 relational_expr :  shift_expr 
@@ -354,17 +349,17 @@ shift_expr :  additive_expr
 shift_op :  LEFT { $$ = (struct node *)LEFT; }
 	|	 RIGHT { $$ = (struct node *)RIGHT; }
 ;
-signed_type_specifier :  RW_SHORT { $$ = node_type(TYPE_SSHORT, 0, NULL);} 
-	|	 RW_SHORT RW_INT { $$ = node_type(TYPE_SSHORT, 0, NULL);} 
-	|	 RW_SIGNED RW_SHORT { $$ = node_type(TYPE_SSHORT, 0, NULL);}
-	|	 RW_SIGNED RW_SHORT RW_INT { $$ = node_type(TYPE_SSHORT, 0, NULL);}
-	|	 RW_INT { $$ = node_type(TYPE_SINT, 0, NULL);}
-	|	 RW_SIGNED RW_INT { $$ = node_type(TYPE_SINT, 0, NULL);}
-	|	 RW_SIGNED { $$ = node_type(TYPE_SINT, 0, NULL);}
-	|	 RW_LONG { $$ = node_type(TYPE_SLONG, 0, NULL);}
-	|	 RW_LONG RW_INT { $$ = node_type(TYPE_SLONG, 0, NULL);}
-	|	 RW_SIGNED RW_LONG { $$ = node_type(TYPE_SLONG, 0, NULL);}
-	|	 RW_SIGNED RW_LONG RW_INT { $$ = node_type(TYPE_SLONG, 0, NULL);}
+signed_type_specifier :  RW_SHORT { $$ = node_type_spec(TYPE_SSHORT);} 
+	|	 RW_SHORT RW_INT { $$ = node_type_spec(TYPE_SSHORT);} 
+	|	 RW_SIGNED RW_SHORT { $$ = node_type_spec(TYPE_SSHORT);}
+	|	 RW_SIGNED RW_SHORT RW_INT { $$ = node_type_spec(TYPE_SSHORT);}
+	|	 RW_INT { $$ = node_type_spec(TYPE_SINT);}
+	|	 RW_SIGNED RW_INT { $$ = node_type_spec(TYPE_SINT);}
+	|	 RW_SIGNED { $$ = node_type_spec(TYPE_SINT);}
+	|	 RW_LONG { $$ = node_type_spec(TYPE_SLONG);}
+	|	 RW_LONG RW_INT { $$ = node_type_spec(TYPE_SLONG);}
+	|	 RW_SIGNED RW_LONG { $$ = node_type_spec(TYPE_SLONG);}
+	|	 RW_SIGNED RW_LONG RW_INT { $$ = node_type_spec(TYPE_SLONG);}
 ;
 simple_declarator :  ID 
 ;
@@ -379,16 +374,20 @@ statement :  expression_statement
 	|	 goto_statement 
 	|	 null_statement 
 ;
-subscript_expr : postfix_expr BRACKETLEFT expr BRACKETRIGHT { $$ = node_subscript_statement($1, $3); }
+/*a[b] == *(a+b) here*/
+subscript_expr : postfix_expr BRACKETLEFT expr BRACKETRIGHT 
+    { struct node * sum = node_binary_operation(ADDITION, $1, $3); 
+      $$ = node_unary_operation(MULTIPLY, PRE, sum); 
+    }
 ;
 top_level_decl : decl
     |   function_definition 
 ;
-translation_unit :  top_level_decl { $$ = node_statement_list(NULL, $1) ; printf("Here I go!! :)\n"); }
-	|	 translation_unit top_level_decl { $$ = node_statement_list($1, $2); }
+translation_unit :  top_level_decl { $$ = node_decl_list(NULL, $1) ; printf("Here I go!! :)\n"); }
+	|	 translation_unit top_level_decl { $$ = node_decl_list($1, $2); }
 ;
-type_name :  declaration_specifiers 
-    |   declaration_specifiers abstract_declarator 
+type_name :  declaration_specifiers { $$ = node_type_name($1, NULL);  }
+    |   declaration_specifiers abstract_declarator { $$ = node_type_name($1, $2); }
 ;
 type_specifier : integer_type_specifier 
 	|	void_type_specifier 
@@ -403,19 +402,19 @@ unary_expr :  postfix_expr
 	|	 preincrement_expr 
 	|	 predecrement_expr 
 ;
-unary_minus_expr : SUBTRACTION cast_expr { $$ = node_unary_operation(SUBTRACTION, $2);}
+unary_minus_expr : SUBTRACTION cast_expr { $$ = node_unary_operation(SUBTRACTION, PRE, $2);}
 ;
-unary_plus_expr : ADDITION cast_expr { $$ = node_unary_operation(ADDITION, $2);}
+unary_plus_expr : ADDITION cast_expr { $$ = node_unary_operation(ADDITION, PRE, $2);}
 ;
 unsigned_type_specifier :  
-         RW_UNSIGNED RW_SHORT RW_INT { $$ = node_type(TYPE_USHORT, 0, NULL);}
-    |    RW_UNSIGNED RW_SHORT { $$ = node_type(TYPE_USHORT, 0, NULL);}
-	|	 RW_UNSIGNED RW_INT { $$ = node_type(TYPE_UINT, 0, NULL);}
-	|	 RW_UNSIGNED { $$ = node_type(TYPE_UINT, 0, NULL);}
-	|	 RW_UNSIGNED RW_LONG RW_INT { $$ = node_type(TYPE_ULONG, 0, NULL);}
-	|	 RW_UNSIGNED RW_LONG { $$ = node_type(TYPE_ULONG, 0, NULL);}
+         RW_UNSIGNED RW_SHORT RW_INT { $$ = node_type_spec(TYPE_USHORT);}
+    |    RW_UNSIGNED RW_SHORT { $$ = node_type_spec(TYPE_USHORT);}
+	|	 RW_UNSIGNED RW_INT { $$ = node_type_spec(TYPE_UINT);}
+	|	 RW_UNSIGNED { $$ = node_type_spec(TYPE_UINT);}
+	|	 RW_UNSIGNED RW_LONG RW_INT { $$ = node_type_spec(TYPE_ULONG);}
+	|	 RW_UNSIGNED RW_LONG { $$ = node_type_spec(TYPE_ULONG);}
 ;
-void_type_specifier :  RW_VOID { $$ = node_type(TYPE_VOID,0,NULL); }
+void_type_specifier :  RW_VOID { $$ = node_type_spec(TYPE_VOID); }
 ;
 while_statement :  RW_WHILE PARENLEFT expr PARENRIGHT statement { $$ = node_while_statement(WHILE, $3, $5); }
 ;
@@ -501,8 +500,9 @@ void print_tree(struct node *node_p) {
 int main(void) {
   int result;
   result = yyparse();
-
-  root_node->print_node(stdout, root_node);
+  if (!result) {
+      root_node->print_node(stdout, root_node, 0);
+  }
   return result;
 }
 

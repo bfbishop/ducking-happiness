@@ -34,15 +34,28 @@ enum node_kinds {
         NODE_FUNCTION_DEF_SPEC,
         NODE_CAST_EXPR,
         NODE_COMMA_EXPR,
+        NODE_PRIM_EXPR,
         NODE_LABELED_STMT,
+        NODE_PARAM_DECL,
         NODE_PARAM_LIST,
         NODE_DECL,
-        NODE_DECL_LIST
+        NODE_DECL_LIST,
+        NODE_DECLARATOR,
+        NODE_POINTER_DECL,
+        NODE_COMPOUND_STATEMENT,
+        NODE_EXPR_STATEMENT,
+        NODE_NULL_STATEMENT,
+        NODE_TYPE_NAME
     };
 
 enum while_kinds {
         DO_WHILE,
         WHILE
+    };
+
+enum unary_kinds {
+        PRE,
+        POST
     };
 
 enum base_types {
@@ -61,7 +74,7 @@ struct node {
   int kind; /*kinds enum*/
   int subkind; /*resvwords, ops, or tokens enum*/
   int line_number;
-  void (*print_node)(FILE *, struct node*);
+  void (*print_node)(FILE *, struct node*, int depth);
   union {
     struct {
       unsigned long value;
@@ -90,12 +103,10 @@ struct node {
     } binary_operation;
     struct {
       int operation;
+      int pre_post;
       struct node *right_operand;
       long int result;
     } unary_operation;
-    struct {
-      struct node *expression;
-    } expression_statement;
     struct {
       struct node *init;
       struct node *statement;
@@ -120,9 +131,9 @@ struct node {
       struct node *statement_if;
     } if_statement;
     struct {
-      struct node *postfix_expr;
-      struct node *expr;
-    } subscript_statement;
+      struct node *decl;
+      struct node *const_expr;
+    } subscript_decl;
     struct {
       struct node * id;
     } return_stmt;
@@ -130,9 +141,8 @@ struct node {
       struct node * id;
     } goto_stmt;
     struct {
-      int pointer_depth;
-      struct node * id;
-    } type;
+      int type;
+    } type_spec;
     struct {
       struct node * postfix_expr;
       struct node * expr_list;
@@ -145,6 +155,9 @@ struct node {
       struct node *init;
       struct node *expr;
     } comma_expr;
+    struct {
+      struct node *expr;
+    } prim_expr;
     struct {
       struct node *decl;
       struct node *param_list;
@@ -162,6 +175,10 @@ struct node {
       struct node *decl;
     } func_def_spec;
     struct {
+      struct node *decl_spec;
+      struct node *declrtr;
+    } param_decl;
+    struct {
       struct node *init;
       struct node *param;
     } param_list;
@@ -173,6 +190,20 @@ struct node {
       struct node *init;
       struct node *decl;
     } decl_list;
+    struct {
+      int depth;
+      struct node *decl;
+    } pointer_decl;
+    struct {
+      struct node *decl_or_stmt_list;
+    } comp_stmt;
+    struct {
+      struct node *expr;
+    } expr_stmt;
+    struct {
+      struct node *decl_spec;
+      struct node *abs_decl;
+    } type_name;
   } data;
 };
 
@@ -184,35 +215,41 @@ struct node *node_statement_list(struct node *list, struct node *item);
 struct node *node_ternary_operation(int operation1, int operation2, struct node *left_operand, struct node *middle_operand, struct node *right_operand);
 struct node *node_binary_operation(int operation, struct node *left_operand,
                                    struct node *right_operand);
-struct node *node_unary_operation(int operation, struct node *right_operand);
+struct node *node_unary_operation(int operation, int pre_post, struct node *right_operand);
 struct node *node_expression_statement(struct node *expression);
 struct node *node_statement_list(struct node *init, struct node *statement);
 struct node *node_while_statement(int while_type, struct node *expr, struct node *statement);
 struct node *node_for_statement(struct node *initial_clause, struct node *middle_expr, struct node* end_expr, struct node *statement);
 struct node *node_if_else_statement(struct node *expr, struct node *statement_if, struct node *statement_else);
 struct node *node_if_statement(struct node *expr, struct node *statement_if);
-struct node *node_subscript_statement(struct node *postfix_expr, struct node *expr);
+struct node *node_subscript_decl(struct node *decl, struct node *const_expr);
 struct node *node_return(struct node* id);
 struct node *node_goto(struct node* id);
 struct node *node_break();
 struct node *node_continue();
-struct node *node_type(int type, int pointer_depth, struct node* id);
+struct node *node_type_spec(int type);
 struct node *node_function_call(struct node* postfix_expr, struct node* expr_list);
 struct node *node_function_declarator(struct node* postfix_expr, struct node* expr_list);
 struct node *node_function_def(struct node* func_spec, struct node* stmt);
 struct node *node_function_def_spec(struct node* spec, struct node* decl);
 struct node *node_cast_expr(struct node* type_expr, struct node* expr);
 struct node *node_comma_expr(struct node *init, struct node *expr);
+struct node *node_primary_expr(struct node *expr);
 struct node *node_func_declarator(struct node *decl, struct node *param_list);
 struct node *node_labeled_statement(struct node *label, struct node *statement);
+struct node *node_param_decl(struct node *decl_spec, struct node *declrtr);
 struct node *node_param_list(struct node *init, struct node *param);
 struct node *node_decl(struct node * decl_spec, struct node * decl_list);
 struct node *node_decl_list(struct node * init, struct node * decl);
+struct node *node_pointer_decl(int depth, struct node * decl);
+struct node *node_compound_statement(struct node *decl_or_stmt_list);
+struct node *node_expr_statement(struct node *expr);
+struct node *node_null_statement();
+struct node *node_type_name(struct node * decl_spec, struct node * abs_decl);
 
 long int node_get_result(struct node *expression);
 
 void node_print_statement_list(FILE *output, struct node *statement_list);
 
-void print_statement_list(FILE *output, struct node*statement_list);
 
 #endif
