@@ -1,3 +1,13 @@
+/*
+  This contains the grammar rules and the main function for running the parser.
+  This uses blexer to lex the input. The grammar rules take the tokens and build up an
+  AST for the parse. 
+  Errors are captured at the statement/declaration level, i.e. an error in a statement 
+  makes the parsing continue to the next statement/declaration/function definition.
+  Token enum values are cast to (struct node *) to be set to the $$ value, which has
+  YYSTYPE type.
+  Parse tree printing does not occur on parse error.
+*/
 %{
 
 #define YYSTYPE struct node *
@@ -5,21 +15,24 @@
 #include <stdio.h>
 #include "node.h"
 
-void print_tree(struct node *node_p);
 int yylex(void);
-int main(void);
+int main(int argc, char * argv[]);
 void yyerror(char const *s);
+/*start of the parse tree*/
 struct node * root_node;
 
-/*Set to 1 in the event of a recoverable error*/
+extern FILE * yyin;
+
+/*set to 1 in the event of a recoverable error*/
 int recoverable_error = 0;
 
 %}
-
+/*program non-terminal not part of the original grammar; it's there to set the root node*/
 %start program
 
 %token RW_BREAK RW_CHAR RW_CONTINUE RW_DO RW_ELSE RW_FOR RW_GOTO RW_IF RW_INT RW_LONG RW_RETURN RW_SHORT RW_SIGNED RW_UNSIGNED RW_VOID RW_WHILE
 
+/* "Dangling else" handled by giving else higher precedence than the right paren (of the if)*/
 %nonassoc PARENRIGHT
 %nonassoc RW_ELSE
 
@@ -72,30 +85,6 @@ int recoverable_error = 0;
 %token SUBTRACTION
 %token ULONG
 
-/*%token RW_BREAK RW_CHAR RW_CONTINUE RW_DO RW_ELSE RW_FOR RW_GOTO RW_IF RW_INT RW_LONG RW_RETURN RW_SHORT RW_SIGNED RW_UNSIGNED RW_VOID RW_WHILE
-%token ID
-%token NUMBER
-%token STRING
-%token SEQUENTIALOP_COMMA
-%token ASSIGNOP_SIMPLE ASSIGNOP_ADDITION ASSIGNOP_SUBTRACTION ASSIGNOP_MULTIPLICATION ASSIGNOP_DIVISION ASSIGNOP_REMAINDER ASSIGNOP_LEFTSHIFT ASSIGNOP_RIGHTSHIFT ASSIGNOP_BITWISEAND ASSIGNOP_BITWISEXOR ASSIGNOP_BITWISEOR
-%token CONDITIONAL_QUEST CONDITIONAL_COLON
-%token LOGICALOP_OR LOGICALOP_AND
-%token BITWISEOP_OR BITWISEOP_XOR BITWISEOP_AND
-%token EQUALOP_EQ EQUALOP_NE
-%token RELOP_LT RELOP_LE RELOP_GT RELOP_GE
-%token SHIFTOP_LEFT SHIFTOP_RIGHT
-%token ADDOP_ADDITION ADDOP_SUBTRACTION
-%token MULOP_MULTIPLY MULOP_DIVIDE MULOP_REMAINDER
-%token BITWISENEG
-%token LOGNEG
-%token INCDEC_INCREMENT INCDEC_DECREMENT
-%token STMTSEP_SEMICOLONo
-%token BRACE_LEFT BRACE_RIGHT
-%token BRACKET_LEFT BRACKET_RIGHT
-%token PAREN_LEFT PAREN_RIGHT
-
-%left ADDOP_ADDITION
-%left MULOP_MULTIPLY*/
 %%
 
 program : translation_unit { root_node = $1; }
@@ -176,6 +165,8 @@ decl :  declaration_specifiers initialized_declarator_list SEPSEMICOLON { $$ = n
 ;
 declaration_or_statement :  decl 
 	|	 statement 
+    |    error decl { $$ = $2; recoverable_error = 1; yyerrok;}
+    |    error statement { $$ = $2; recoverable_error = 1; yyerrok;}
 ;
 declaration_or_statement_list :  declaration_or_statement { $$ = node_statement_list(NULL, $1); }
 	|	 declaration_or_statement_list declaration_or_statement { $$ = node_statement_list($1, $2); }
@@ -206,7 +197,7 @@ equality_op :  EQ { $$ = (struct node *)EQ; }
 ;
 expr :  comma_expr 
 ;
-expression_list :  assignment_expr 
+expression_list :  assignment_expr { $$ = node_expr_list(NULL, $1); }
 	|	 expression_list SEQUENTIALCOMMA assignment_expr { $$ = node_expr_list($1, $3); }
 ;
 expression_statement :  expr SEPSEMICOLON { $$ = node_expr_statement($1); }
@@ -298,7 +289,7 @@ parameter_type_list :  parameter_list
 ;
 parenthesized_expr :  PARENLEFT expr PARENRIGHT { $$ = $2; }
 ;
-/* MULTIPLY == * */
+/* MULTIPLY == *, here used to denote pointer */
 pointer :  MULTIPLY { $$ = (struct node *)1; }
 |	 MULTIPLY pointer { $$ = (struct node *)((long int) $2+1); }
 ;
@@ -364,7 +355,6 @@ statement :  expression_statement
 	|	 return_statement 
 	|	 goto_statement 
 	|	 null_statement 
-    | error { recoverable_error = 1; yyerrok ; } 
 ;
 /* a[b] == *(a+b) here */
 subscript_expr : postfix_expr BRACKETLEFT expr BRACKETRIGHT 
@@ -374,6 +364,8 @@ subscript_expr : postfix_expr BRACKETLEFT expr BRACKETRIGHT
 ;
 top_level_decl : decl
     |   function_definition 
+    |   error decl { $$ = $2; recoverable_error = 1; yyerrok;}
+    |   error function_definition { $$ = $2; recoverable_error = 1; yyerrok;}
 ;
 translation_unit :  top_level_decl { $$ = node_translation_unit(NULL, $1) ; }
 	|	 translation_unit top_level_decl { $$ = node_translation_unit($1, $2); }
@@ -418,8 +410,35 @@ while_statement :  RW_WHILE PARENLEFT expr PARENRIGHT statement { $$ = node_whil
 #include "lex.yy.c"
 #include "node.h"
 
-int main(void) {
+
+/**
+    main - run the parsing and print the output
+
+    parameters: argc = argument count, either 0 or 2 for valid runs
+                argv = array of strings of arguments
+
+    side effects: only those of yyparse() and print_node()
+
+**/
+
+int main(int argc, char * argv[]) {
   int result;
+  FILE * inputFile;
+
+  if (argc == 2 || argc > 3 || (argc == 3 && strcmp(argv[1], "-f"))) {
+    fprintf(stderr,"Usage: ./parser [-f FILENAME]\n");
+    fprintf(stderr,"No arguments runs the parser in test mode, using stdin\n");
+    fprintf(stderr,"Otherwise supply a filename for input to the parser\n");
+    return 1;
+  }
+
+  if (argc == 3) {
+    inputFile = fopen(argv[2], "r");
+  } else {
+    inputFile = stdin;
+  }
+ 
+  yyin = inputFile;
   result = yyparse();
   if (!result && !recoverable_error) {
       root_node->print_node(stdout, root_node, 0);
@@ -427,7 +446,17 @@ int main(void) {
   return result;
 }
 
+
+/**
+    yyerror - print the parse error reported by yyparse()
+
+    parameters: s = string representing the error
+
+    side effects: prints to stderr
+
+**/
+
 void yyerror(char const *s) {
-  fprintf(stderr, "ERROR at line %d: %s\n", yylineno, s);
+  fprintf(stderr, "Line %d: %s\n", yylineno, s);
 }
 

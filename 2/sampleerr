@@ -1,0 +1,7 @@
+Line 1: syntax error, unexpected PARENRIGHT
+Line 3: syntax error, unexpected SEPSEMICOLON
+Line 3: syntax error, unexpected PARENRIGHT
+Line 5: syntax error, unexpected ASSIGNMENTSIMPLE, expecting SEPSEMICOLON or SEQUENTIALCOMMA
+Line 6: syntax error, unexpected LOGICALAND
+Line 7: syntax error, unexpected ASSIGNMENTSIMPLE, expecting SEPSEMICOLON or SEQUENTIALCOMMA
+Line 13: syntax error, unexpected ASSIGNMENTSIMPLE, expecting SEPSEMICOLON or SEQUENTIALCOMMA

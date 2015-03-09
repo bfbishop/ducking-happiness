@@ -1,4 +1,4 @@
-/*nonsense program to test syntax*/
+/*nonsense program to test parsing*/
 
 int b;
 char * c;
@@ -25,22 +25,35 @@ signed long int a;
 unsigned long int a;
 
 void n(void) {
-    return 0;
+    return;
 }
 
 void fun(void) {
     ;
+    b:
+    ;
+
+    c:
+        {
+            int i;
+        }
+
+    goto b;
+    goto c;
+    print();
 }
 
 void n(int *, int*[3],int[],int(*)[3]);
 
 int ***main(int argc, char * argv[]) {
         char *a[];
+        char *a[][];
         int a,b,c,d,e,f;
         char * a[];
         char ******* a[9];
         
-                
+        z = '9';
+        z = '8';                
 
         a[b] = 9;
         if (a = 0) {
@@ -53,6 +66,8 @@ int ***main(int argc, char * argv[]) {
             a-=3;
         }
         
+        i = 2999999999;
+
 
         r = i ? a++ : a--;
         
@@ -103,7 +118,7 @@ int ***main(int argc, char * argv[]) {
      
         
 
-        if (a=b&&g||r&&&o|t)
+        if (a=b&&g||r&&&o|t == o)
             ;
 
         do
@@ -132,7 +147,10 @@ void l (void);
 
 
 void l (void) {
-
+    printf(' ');
+    printf("can't stop\awon't stop");
+    printf("can't stop\\won't stop");
+    printf("can't stop\nwon't stop");
     printf("can't stop\twon't stop");
     printf("can't stop\vwon't stop");
     printf("can't stop\0won't stop");

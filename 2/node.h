@@ -4,12 +4,16 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-/*This is a butchered version of "node" from the in-class example. 
-  It stores the node values and other attributes to be set to 
-  the yylval variable after calling yylex.
-  These objects will likely be used later as parts of nodes.
+/*This is an expanded version of "node" from the in-class example. 
+  A node exists for each non-trivial grammar rule, i.e. to store combinations 
+  of terminals and nonterminals into a single entity. Some nodes exist for
+  trivial rules for cases where the type of node needs to change. For example,
+  a primary expression sometimes needs added parens, so it has its own type to 
+  make it easier to identify.
+  Each node has its own print function, contained in function pointer print_node.
 */
 
+/*All the different kinds of nodes*/
 enum node_kinds {
         NODE_NUMBER,
         NODE_IDENTIFIER,
@@ -51,16 +55,19 @@ enum node_kinds {
         NODE_TRANSLATION_UNIT
     };
 
+/*while or do-while*/
 enum while_kinds {
         DO_WHILE,
         WHILE
     };
 
+/*for printing, need to know if op comes before (pre) or after (post) inner expr*/
 enum unary_kinds {
         PRE,
         POST
     };
 
+/*canonical base types*/
 enum base_types {
         TYPE_VOID,
         TYPE_SCHAR,
@@ -74,10 +81,12 @@ enum base_types {
     };
 
 struct node {
-  int kind; /*kinds enum*/
-  int subkind; /*resvwords, ops, or tokens enum*/
+  int kind; /*node_kinds enum*/
+  int subkind; /*for specifying another level of kind e.g. unary_kinds, while_kinds*/
   int line_number;
+  /*function pointer pointing to a print function for that specific node*/
   void (*print_node)(FILE *, struct node*, int depth);
+  /*variables specific to each kind of node are stored in structs and unioned together here*/
   union {
     struct {
       unsigned long value;
@@ -264,10 +273,5 @@ struct node *node_null_statement();
 struct node *node_type_name(struct node * decl_spec, struct node * abs_decl);
 struct node *node_abstract_decl(long int pointer_depth, struct node * dir_abs_decl);
 struct node *node_translation_unit(struct node * init, struct node * top_level_decl);
-
-long int node_get_result(struct node *expression);
-
-void node_print_statement_list(FILE *output, struct node *statement_list);
-
 
 #endif

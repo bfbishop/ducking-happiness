@@ -1,0 +1,41 @@
+Brian Bishop
+CSCI E95
+HW2
+
+This is the parser for the source language used in class CSCI E95.
+Contained here are: 
+    bparser.y - a yacc file for the parser
+    blexer.lex - a lex file to support lexing
+    lexer - standalone lexer code, not for hw2
+    lexer.c - code for the standalone lexer
+    lexer.h - header file for lexer
+    Makefile - make file for parser
+    node.c - code for nodes in the parse tree
+    node.h - header file for node
+    simplertest.c - a nonsense program input into the parser for parsing testing
+    simpleerror.c - a program with errors input into the parser to make sure 
+        processing continues after error
+    sampleout - a sample of the output written to file using bash redirection
+    sampleerr - a sample of the error output written to file using bash redirection
+
+To build:
+    make
+
+To clean:
+    make clean
+
+Usage:
+   Usage: ./parser [-f FILENAME] 
+   No arguments runs the parser in test mode, using stdin
+   Otherwise supply a filename for input to the lexer
+
+Example usage: ./parser -f simplertest.c
+
+Output is written to stdout, while errors go to stderr. 
+Errors are at the statement level, i.e. parsing continues at the next statement, 
+declaration, or function definition.
+Output is a print of the parse tree, with parentheses around each subexpression
+and each piece of a declaration. Braces appear around compound statements and 
+body of if/else/loop statements. Braces appear even if they weren't in the 
+original source, for one-statement loops etc.
+Parse tree is not printed when errors occur.
