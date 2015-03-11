@@ -1,0 +1,232 @@
+void print_number(FILE * output, struct node * n, int depth) {
+#ifdef DEBUG
+    printf("print_number\n"); 
+#endif
+    fprintf(output, "%lu",n->data.number.value);
+}
+
+void print_identifier(FILE * output, struct node * n, int depth) {
+#ifdef DEBUG
+    printf("print_identifier\n"); 
+#endif
+    fprintf(output, "%s", n->data.identifier.name);
+}
+
+void print_string(FILE * output, struct node * n, int depth) {
+    int i;
+#ifdef DEBUG
+    printf("print_string\n"); 
+#endif
+    fputs("\"", output);
+    for (i=0; i < n->data.string.length; i++) {
+        switch (n->data.string.value[i]) {
+            /*Prints more cleanly by not using whitespace literally... not un-escaping every character*/
+            case '\n':
+                fputs("\\n", output);
+            break;
+            case '\t':
+                fputs("\\r", output);
+            break;
+            case '\v':
+                fputs("\\v", output);
+            break;
+            case '\\':
+                fputs("\\\\", output);
+            break;
+            default:
+                fprintf(output,"%c",n->data.string.value[i]);
+            break;
+        }
+    }
+    fputs("\"", output);
+}
+
+void print_ternary_operation(FILE * output, struct node * n, int depth) {
+#ifdef DEBUG
+    printf("print_ternary_operation\n"); 
+#endif
+    fputs("(", output);
+    n->data.ternary_operation.left_operand->print_node(output, n->data.ternary_operation.left_operand, depth);
+    fputs("?", output);
+    n->data.ternary_operation.middle_operand->print_node(output, n->data.ternary_operation.middle_operand, depth);
+    fputs(":", output);
+    n->data.ternary_operation.right_operand->print_node(output, n->data.ternary_operation.right_operand, depth);
+    fputs(")", output);
+}
+
+void print_binary_op(FILE * output, struct node * n, int depth) {
+    char * op;
+#ifdef DEBUG
+    printf("print_binary_op\n"); 
+#endif
+    switch(n->subkind) {
+        case ASSIGNMENTADDITION:
+            op = "+=";
+        break;
+        case ASSIGNMENTBITWISEAND:
+            op = "&=";
+        break;
+        case ASSIGNMENTBITWISEOR:
+            op = "|=";
+        break;
+        case ASSIGNMENTBITWISEXOR:
+            op = "^=";
+        break;
+        case ASSIGNMENTDIVISION:
+            op = "/=";
+        break;
+        case ASSIGNMENTLEFTSHIFT:
+            op = "<<=";
+        break;
+        case ASSIGNMENTMULTIPLICATION:
+            op = "*=";
+        break;
+        case ASSIGNMENTREMAINDER:
+            op = "%=";
+        break;
+        case ASSIGNMENTRIGHTSHIFT:
+            op = ">>=";
+        break;
+        case ASSIGNMENTSIMPLE:
+            op = "=";
+        break;
+        case ASSIGNMENTSUBTRACTION:
+            op = "-=";
+        break;
+        case ADDITION:
+            op = "+";
+        break;
+        case SUBTRACTION:
+            op = "-";
+        break;
+        case MULTIPLY:
+            op = "*";
+        break;
+        case DIVIDE:
+            op = "/";
+        break;
+        case REMAINDER:
+            op = "%";
+        break;
+        case BITAND:
+            op = "&";
+        break;
+        case BITOR:
+            op = "|";
+        break;
+        case BITXOR:
+            op = "^";
+        break;
+        case EQ:
+            op = "==";
+        break;
+        case GE:
+            op = ">=";
+        break;
+        case GT:
+            op = ">";
+        break;
+        case LE:
+            op = "<=";
+        break;
+        case LT:
+            op = "<";
+        break;
+        case NE:
+            op = "!=";
+        break;
+        case LEFT:
+            op = "<<";
+        break;
+        case RIGHT:
+            op = ">>";
+        break;
+        case LOGICALAND:
+            op = "&&";
+        break;
+        case LOGICALOR:
+            op = "||";
+        break;
+    }
+    
+    fputs("(", output);
+    n->data.binary_operation.left_operand->print_node(output, n->data.binary_operation.left_operand, depth);
+    fputs(op,output);
+    n->data.binary_operation.right_operand->print_node(output, n->data.binary_operation.right_operand, depth);
+    fputs(")", output);
+}
+
+void print_unary_op(FILE * output, struct node * n, int depth) {
+    char * op;
+#ifdef DEBUG
+    printf("print_unary_op\n"); 
+#endif
+    switch(n->subkind) {
+        case ADDITION:
+            op = "+";
+        break;
+        case SUBTRACTION:
+            op = "-";
+        break;
+        case MULTIPLY:
+            op = "*";
+        break;
+        case BITAND:
+            op = "&";
+        break;
+        case BITWISENEG:
+            op = "~";
+        break;
+        case LOGNEG:
+            op = "!";
+        break;
+        case INCDECINCREMENT:
+            op = "++";
+        break;
+        case INCDECDECREMENT:
+            op = "--";
+        break;
+    }
+    fputs("(", output);
+    if (n->data.unary_operation.pre_post == PRE) {
+        fputs(op,output);
+    }
+    n->data.unary_operation.right_operand->print_node(output, n->data.unary_operation.right_operand, depth);
+    if (n->data.unary_operation.pre_post == POST) {
+        fputs(op,output);
+    }
+    fputs(")", output);
+}
+
+void print_statement_list(FILE *output, struct node*n, int depth){
+  if (NULL != n->data.statement_list.init) {
+#ifdef DEBUG
+    printf("%d\n", n->data.statement_list.init->kind);
+#endif
+    n->data.statement_list.init->print_node(output, n->data.statement_list.init, depth);
+  }
+#ifdef DEBUG
+  printf("%d\n", n->data.statement_list.statement->kind);
+#endif
+  n->data.statement_list.statement->print_node(output, n->data.statement_list.statement, depth+1);
+}
+
+void print_comma_expr(FILE * output, struct node * n, int depth) {
+#ifdef DEBUG
+    printf("print_comma_expr\n");
+#endif
+    if (n->data.comma_expr.init != NULL) {
+        n->data.comma_expr.init->print_node(output, n->data.comma_expr.init, depth);
+    }
+    fputs(",", output);
+    n->data.comma_expr.expr->print_node(output, n->data.comma_expr.expr, depth);
+}
+
+void print_primary_expr(FILE * output, struct node * n, int depth) {
+#ifdef DEBUG
+    printf("print_primary_expr\n");
+#endif
+    n->data.prim_expr.expr->print_node(output, n->data.prim_expr.expr, depth);
+}
+
+

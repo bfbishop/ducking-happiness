@@ -8,6 +8,7 @@
 #include "lexer.h"
 #include "y.tab.h"
 #include "node.h"
+#include "symbol.h"
 
 /*#define DEBUG*/
 /*This is an expanded version of "node" from the in-class example. 
@@ -96,6 +97,7 @@ struct node *node_number(long int value, int subkind) {
     struct node * nd = node_create(CONSTANT, subkind);
     nd->data.number.value = value;
     nd->print_node=print_number;
+    nd->traverse_node=traverse_number;
     return nd;
 }
 
@@ -132,6 +134,7 @@ struct node *node_identifier(char *text) {
     nd->data.identifier.name = (char *)malloc(32);
     strncpy(nd->data.identifier.name,text,31);
     nd->print_node=print_identifier;
+    nd->traverse_node=traverse_identifier;
     nd->line_number = 1;
 #ifdef DEBUG
     printf("%s\n",text);
@@ -196,6 +199,7 @@ struct node *node_string(char *text, int length) {
     nd->data.string.value = text;
     nd->data.string.length = length;
     nd->print_node = print_string;
+    nd->traverse_node=traverse_string;
     return nd;
 }
 
@@ -248,6 +252,7 @@ struct node *node_ternary_operation(int operation1, int operation2, struct node 
   node->data.ternary_operation.right_operand = right_operand;
   node->data.ternary_operation.result = 0;
   node->print_node=print_ternary_operation;
+  node->traverse_node=traverse_ternary_operation;
   return node;
 }
 
@@ -386,6 +391,7 @@ struct node *node_binary_operation(int operation, struct node *left_operand,
   node->data.binary_operation.right_operand = right_operand;
   node->data.binary_operation.result = 0;
   node->print_node=print_binary_op;
+  node->traverse_node=traverse_binary_operation;
   return node;
 }
 
@@ -461,6 +467,7 @@ struct node *node_unary_operation(int operation, int pre_post, struct node *righ
   node->data.unary_operation.pre_post = pre_post;
   node->data.unary_operation.result = 0;
   node->print_node=print_unary_op;
+  node->traverse_node=traverse_unary_operation;
   return node;
 }
 
@@ -504,6 +511,7 @@ struct node *node_statement_list(struct node *init, struct node *statement) {
   node->data.statement_list.init = init;
   node->data.statement_list.statement = statement;
   node->print_node = print_statement_list;
+  node->traverse_node=traverse_statement_list;
   return node;
 }
 
@@ -545,6 +553,7 @@ struct node *node_comma_expr(struct node *init, struct node *expr) {
   node->data.comma_expr.init = init;
   node->data.comma_expr.expr = expr;
   node->print_node=print_comma_expr;
+  node->traverse_node=traverse_comma_expr;
   return node;
 }
 
@@ -580,6 +589,7 @@ struct node *node_primary_expr(struct node *expr) {
   struct node *node = node_create(NODE_PRIM_EXPR, NODE_PRIM_EXPR);
   node->data.prim_expr.expr = expr;
   node->print_node=print_primary_expr;
+  node->traverse_node=traverse_prim_expr;
   return node;
 }
 
@@ -647,6 +657,7 @@ struct node *node_while_statement(int while_type, struct node *expr, struct node
     node->data.while_statement.expr = expr;
     node->data.while_statement.statement = statement;
     node->print_node = print_while;
+    node->traverse_node=traverse_while_statement;
     return node;
 }
 
@@ -710,6 +721,7 @@ struct node *node_for_statement(struct node *initial_clause, struct node *middle
     node->data.for_statement.end_expr = end_expr;
     node->data.for_statement.statement = statement;
     node->print_node = print_for;
+    node->traverse_node=traverse_for_statement;
     return node;
 }
 
@@ -787,6 +799,7 @@ struct node *node_if_else_statement(struct node *expr, struct node *statement_if
     node->data.if_else_statement.statement_if = statement_if;
     node->data.if_else_statement.statement_else = statement_else;
     node->print_node = print_if_else;
+    node->traverse_node=traverse_if_else_statement;
     return node;
 }
 
@@ -842,6 +855,7 @@ struct node *node_if_statement(struct node *expr, struct node *statement_if) {
     node->data.if_statement.expr = expr;
     node->data.if_statement.statement_if = statement_if;
     node->print_node = print_if;
+    node->traverse_node=traverse_if_statement;
     return node;
 }
 
@@ -888,6 +902,7 @@ struct node *node_subscript_decl(struct node * decl, struct node *const_expr) {
     node->data.subscript_decl.decl = decl;
     node->data.subscript_decl.const_expr = const_expr;
     node->print_node=print_subscript_decl;
+    node->traverse_node=traverse_subscript_decl;
     return node;
 }
 
@@ -918,6 +933,7 @@ void print_node_break(FILE * output, struct node * n, int depth) {
 struct node *node_break() {
     struct node * node = node_create(NODE_BREAK, NODE_BREAK);
     node->print_node=print_node_break;
+    node->traverse_node=traverse_break_statement;
     return node;
 }
 
@@ -948,6 +964,7 @@ void print_node_continue(FILE * output, struct node * n, int depth) {
 struct node *node_continue() {
     struct node * node = node_create(NODE_CONTINUE, NODE_CONTINUE);
     node->print_node=print_node_continue;
+    node->traverse_node=traverse_continue_statement;
     return node;
 }
 
@@ -986,6 +1003,7 @@ struct node *node_return(struct node* id) {
     struct node * node = node_create(NODE_RETURN, NODE_RETURN);
     node->data.return_stmt.id = id;
     node->print_node=print_node_return;
+    node->traverse_node=traverse_return_stmt;
     return node;
 }
 
@@ -1021,6 +1039,7 @@ struct node *node_goto(struct node* id) {
     struct node * node = node_create(NODE_GOTO, NODE_GOTO);
     node->data.goto_stmt.id = id;
     node->print_node=print_node_goto;
+    node->traverse_node=traverse_goto_stmt;
     return node;
 }
 
@@ -1069,6 +1088,7 @@ struct node *node_type_spec(int type) {
     struct node * node = node_create(NODE_TYPE, type);
     node->data.type_spec.type = type;
     node->print_node = print_type_spec;
+    node->traverse_node=traverse_type_spec;
     return node;
 }
 
@@ -1118,6 +1138,7 @@ struct node *node_function_call(struct node* postfix_expr, struct node* expr_lis
     node->data.function_call.postfix_expr = postfix_expr;
     node->data.function_call.expr_list = expr_list;
     node->print_node=print_function_call;
+    node->traverse_node=traverse_function_call;
     return node;
 
 }
@@ -1159,6 +1180,7 @@ struct node *node_cast_expr(struct node* type_expr, struct node* expr) {
     node->data.cast_expr.type_expr = type_expr;
     node->data.cast_expr.expr = expr;
     node->print_node=print_cast_expr;
+    node->traverse_node=traverse_cast_expr;
     return node;
 
 }
@@ -1201,6 +1223,7 @@ struct node *node_func_declarator(struct node *decl, struct node *param_list) {
     node->data.func_declarator.decl = decl;
     node->data.func_declarator.param_list = param_list;
     node->print_node=print_func_decl;
+    node->traverse_node=traverse_func_declarator;
     return node;
 }
 
@@ -1237,6 +1260,7 @@ struct node *node_function_def(struct node* func_spec, struct node* stmt) {
     node->data.func_def.func_spec = func_spec;
     node->data.func_def.stmt = stmt;
     node->print_node=print_func_def;
+    node->traverse_node=traverse_func_def;
     return node;
 }
 
@@ -1276,6 +1300,7 @@ struct node *node_function_def_spec(struct node* spec, struct node* decl) {
     node->data.func_def_spec.spec = spec;
     node->data.func_def_spec.decl = decl;
     node->print_node=print_func_def_spec;
+    node->traverse_node=traverse_func_def_spec;
     return node;
 }
 
@@ -1317,6 +1342,7 @@ struct node *node_labeled_statement(struct node *label, struct node *statement) 
     node->data.lbl_stmt.label = label;
     node->data.lbl_stmt.statement = statement;
     node->print_node=print_labeled_statement;
+    node->traverse_node=traverse_lbl_stmt;
     return node;
 }
 
@@ -1358,6 +1384,7 @@ struct node *node_param_list(struct node *init, struct node *param){
     node->data.param_list.init = init;
     node->data.param_list.param = param;
     node->print_node=print_param_list;
+    node->traverse_node=traverse_param_list;
     return node;
 }
 
@@ -1399,6 +1426,7 @@ struct node *node_param_decl(struct node *decl_spec, struct node *declrtr){
     node->data.param_decl.decl_spec = decl_spec;
     node->data.param_decl.declrtr = declrtr;
     node->print_node=print_param_decl;
+    node->traverse_node=traverse_param_decl;
     return node;
 }
 
@@ -1440,6 +1468,7 @@ struct node *node_decl(struct node * decl_spec, struct node * decl_list) {
     node->data.decl.decl_spec = decl_spec;
     node->data.decl.decl_list = decl_list;
     node->print_node=print_decl;
+    node->traverse_node=traverse_decl;
     return node;
 }
 
@@ -1481,6 +1510,7 @@ struct node *node_decl_list(struct node * init, struct node * decl) {
     node->data.decl_list.init = init;
     node->data.decl_list.decl = decl;
     node->print_node=print_decl_list;
+    node->traverse_node=traverse_decl_list;
     return node;
 }
 
@@ -1526,6 +1556,7 @@ struct node *node_pointer_decl(int depth, struct node * decl) {
     node->data.pointer_decl.depth = depth;
     node->data.pointer_decl.decl = decl;
     node->print_node=print_pointer_decl;
+    node->traverse_node=traverse_pointer_decl;
     return node;
 }
 
@@ -1564,6 +1595,7 @@ struct node *node_compound_statement(struct node *decl_or_stmt_list) {
     struct node * node = node_create(NODE_COMPOUND_STATEMENT, NODE_COMPOUND_STATEMENT);
     node->data.comp_stmt.decl_or_stmt_list = decl_or_stmt_list;
     node->print_node=print_compound_statement;
+    node->traverse_node=traverse_comp_stmt;
     return node; 
 }
 
@@ -1598,6 +1630,7 @@ struct node *node_expr_statement(struct node *expr) {
     struct node * node = node_create(NODE_EXPR_STATEMENT, NODE_EXPR_STATEMENT);
     node->data.expr_stmt.expr = expr;
     node->print_node=print_expr_statement;
+    node->traverse_node=traverse_expr_stmt;
     return node; 
 }
 
@@ -1631,6 +1664,7 @@ void print_null_statement(FILE * output, struct node * n, int depth) {
 struct node *node_null_statement() {
     struct node * node = node_create(NODE_NULL_STATEMENT, NODE_NULL_STATEMENT);
     node->print_node=print_null_statement;
+    node->traverse_node=traverse_null_statement;
     return node;
 }
 
@@ -1671,6 +1705,7 @@ struct node *node_type_name(struct node * decl_spec, struct node * abs_decl){
     node->data.type_name.decl_spec = decl_spec;
     node->data.type_name.abs_decl = abs_decl;
     node->print_node=print_type_name;
+    node->traverse_node=traverse_type_name;
     return node;
 }
 
@@ -1719,6 +1754,7 @@ struct node *node_abstract_decl(long int pointer_depth, struct node * dir_abs_de
     node->data.abs_decl.pointer_depth = pointer_depth;
     node->data.abs_decl.dir_abs_decl = dir_abs_decl;
     node->print_node=print_abstract_decl;
+    node->traverse_node=traverse_abs_decl;
     return node;
 }
 
@@ -1759,6 +1795,7 @@ struct node *node_translation_unit(struct node * init, struct node * top_level_d
     node->data.translation_unit.init = init;
     node->data.translation_unit.top_level_decl = top_level_decl;
     node->print_node=print_translation_unit;
+    node->traverse_node=traverse_translation_unit;
     return node;
 
 }
@@ -1805,6 +1842,7 @@ struct node *node_expr_list(struct node *init, struct node *expr) {
   node->data.expr_list.init = init;
   node->data.expr_list.expr = expr;
   node->print_node = print_expr_list;
+  node->traverse_node=traverse_expr_list;
   return node;
 }
 

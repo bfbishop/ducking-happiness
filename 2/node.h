@@ -86,6 +86,7 @@ struct node {
   int line_number;
   /*function pointer pointing to a print function for that specific node*/
   void (*print_node)(FILE *, struct node*, int depth);
+  void (*traverse_node)(struct node *);
   /*variables specific to each kind of node are stored in structs and unioned together here*/
   union {
     struct {
