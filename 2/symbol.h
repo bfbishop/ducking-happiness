@@ -1,5 +1,9 @@
 #include"node.h"
 
+struct type_node {
+    int kind /*node_kinds enum*/
+};
+
 void traverse_number(struct node * n); 
 void traverse_identifier(struct node * n); 
 void traverse_string(struct node * n); 
