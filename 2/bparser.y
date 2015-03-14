@@ -13,6 +13,7 @@
 #define YYSTYPE struct node *
 #define YYERROR_VERBOSE
 #include <stdio.h>
+#include "symbol.h"
 #include "node.h"
 
 int yylex(void);
@@ -442,6 +443,9 @@ int main(int argc, char * argv[]) {
   result = yyparse();
   if (!result && !recoverable_error) {
       root_node->print_node(stdout, root_node, 0);
+
+      fprintf(stdout, "\n--- Printing Symbol Table ---\n\n");
+      root_node->traverse_node(root_node,type_node_create(NODE_COMPOUND_STATEMENT, SCOPE));
   }
   return result;
 }

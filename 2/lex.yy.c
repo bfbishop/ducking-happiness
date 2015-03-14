@@ -2471,7 +2471,7 @@ enum yytokentype eval_num_type(void) {
     
     if (longVal <= 2147483647) {
         return INT;
-    } else if (longVal <= 4294967295 ){
+    } else if (longVal <= 4294967295UL ){
         return ULONG;
     } else {
         fprintf(stderr,"Line %d: integer constant exceeds maximum size of 4294967295 (%s)\n", yylineno, yytext);
