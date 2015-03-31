@@ -1,0 +1,158 @@
+<!DOCTYPE HTML>
+<meta charset="utf-8">
+
+<html>
+
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.bar rect {
+  fill: darkblue;
+  shape-rendering: crispEdges;
+}
+
+.bar:hover rect {
+  fill: gray;
+}
+
+.bar text {
+  fill: #fff;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+</style>
+
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+// Generate a Bates distribution of 10 random variables.
+var values = d3.range(1000).map(d3.random.bates(10));
+
+// A formatter for counts.
+var formatCount = d3.format(",.0f");
+
+var margin = {top: 10, right: 30, bottom: 30, left: 30},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var x = d3.scale.linear()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+    
+//var x = d3.scale.linear()
+    //.domain([0, 1])
+    //.range([0, width]);
+
+// Generate a histogram using twenty uniformly-spaced bins.
+//var data = d3.layout.histogram()
+//    .bins(x.ticks(25))
+//    (values);
+
+//var y = d3.scale.linear()
+    //.domain([0, d3.max(data, function(d) { return d.y; })])
+    //.range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+    
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var tooltip = d3.select("body")
+	.append("div")
+	.style("position", "absolute")
+	.style("z-index", "10")
+	.style("visibility", "hidden")
+	;//.text("a simple tooltip");    
+    
+var data_array = [];
+var label_array = [];
+    
+d3.tsv("/home/brian/Documents/code/e63/8/1.tsv", type, function(error, dater) {
+//x.domain([0, dater.map(function(d) { return d.spending; })]);
+  dater.forEach(
+    function(d){
+      data_array.push(d.spending);
+      label_array.push(d.country);
+    }
+  );
+  x.domain([0, d3.max(dater, function(d) { return d.spending; })]);
+  
+  var data = d3.layout.histogram()
+    .bins(x.ticks(25))
+    (data_array, label_array);
+    
+    data.forEach(function(d) {
+      alert(d);
+    });
+    
+      y.domain([0, d3.max(data, function(d) { return d.y; })])
+    
+var bar = svg.selectAll(".bar")
+    .data(data)
+  .enter().append("g")
+    .attr("class", "bar")
+    .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; });
+    
+bar.append("rect")
+    .attr("x", 1)
+    .attr("width", x(data[0].dx) - 1)
+    .attr("height", function(d) { return height - y(d.y); })
+    	.on("mouseover", function(){return tooltip.style("visibility", "visible").text(function (d) {return "cat";});})
+	.on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+	.on("mouseout", function(){return tooltip.style("visibility", "hidden");});
+
+bar.append("text")
+    .attr("dy", ".75em")
+    .attr("y", 6)
+    .attr("x", x(data[0].dx) / 2)
+    .attr("text-anchor", "middle")
+    .text(function(d) { return formatCount(d.y); });
+
+svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+    
+svg.append("g")
+    .attr("class", "y axis")
+    .call(yAxis)
+  .append("text")
+    //.attr("transform", "rotate(-90)")
+    .attr("y", -10)
+    .attr("dy", ".71em")
+    //.attr("dx", "4em")
+    .style("text-anchor", "end")
+    .text("Count");
+    
+  
+});
+    
+function type(d) {
+  d.spending = +d.spending; //convert to number
+  return d;
+}
+    
+</script>
+</body>
+</html>
